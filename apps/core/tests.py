@@ -1,5 +1,4 @@
 import pytest
-from django.utils import timezone
 from rest_framework import exceptions, status
 from rest_framework.response import Response
 from rest_framework.test import APIRequestFactory
@@ -24,7 +23,6 @@ def test_timestamped_and_soft_delete_model():
     instance.refresh_from_db()
     assert instance.is_deleted
     assert instance.deleted_at is not None
-    last_deleted_at = instance.deleted_at
 
     # Test restore
     instance.restore()
@@ -34,6 +32,7 @@ def test_timestamped_and_soft_delete_model():
 
 
 def test_success_response():
+
     data = {"foo": "bar"}
     response = success_response(data=data, message="Operation Succeeded", status=201)
 
@@ -59,8 +58,10 @@ def test_custom_exception_handler():
 
 
 def test_custom_exception_handler_none():
-    # If it is a non-DRF exception (e.g. ValueError), standard exception_handler returns None
+    # If it is a non-DRF exception (e.g. ValueError),
+    # standard exception_handler returns None
     exc = ValueError("A python error")
+
     context = {"request": APIRequestFactory().get("/")}
 
     response = custom_exception_handler(exc, context)

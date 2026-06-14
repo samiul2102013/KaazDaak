@@ -4,7 +4,8 @@ from .base import *  # noqa: F401,F403
 
 DEBUG = False
 
-# Read ALLOWED_HOSTS from env (already defined in base.py, but redefined here for clarity)
+# Read ALLOWED_HOSTS from env (already defined in base.py,
+# but redefined here for clarity)
 ALLOWED_HOSTS = config(
     "ALLOWED_HOSTS",
     default="",

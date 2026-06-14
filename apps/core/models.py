@@ -33,4 +33,3 @@ class ConcreteTestModel(SoftDeleteModel):
 
     class Meta:
         app_label = "core"
-
