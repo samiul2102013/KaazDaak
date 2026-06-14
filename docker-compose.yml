@@ -57,6 +57,7 @@ services:
       context: .
       dockerfile: docker/Dockerfile
       target: runtime
+    image: ghcr.io/${GITHUB_REPOSITORY:-kaazdaak}/web:${IMAGE_TAG:-latest}
     command: celery -A config worker -l info -Q default,high_priority
     env_file:
       - .env
@@ -74,6 +75,7 @@ services:
       context: .
       dockerfile: docker/Dockerfile
       target: runtime
+    image: ghcr.io/${GITHUB_REPOSITORY:-kaazdaak}/web:${IMAGE_TAG:-latest}
     command: celery -A config beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
     env_file:
       - .env
@@ -91,6 +93,7 @@ services:
       context: .
       dockerfile: docker/Dockerfile
       target: runtime
+    image: ghcr.io/${GITHUB_REPOSITORY:-kaazdaak}/web:${IMAGE_TAG:-latest}
     command: celery -A config flower --port=5555
     ports:
       - "5555:5555"
