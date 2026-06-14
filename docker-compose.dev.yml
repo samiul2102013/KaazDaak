@@ -1,0 +1,67 @@
+services:
+  nginx:
+    entrypoint: ["echo", "Nginx is disabled in development"]
+    ports: []
+    restart: "no"
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: builder
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.development
+
+  db:
+    ports:
+      - "5432:5432"
+
+  redis:
+    ports:
+      - "6379:6379"
+
+  celery:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: builder
+    command: celery -A config worker -l info -Q default,high_priority
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.development
+
+  celery_beat:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: builder
+    command: celery -A config beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.development
+
+  flower:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: builder
+    command: celery -A config flower --port=5555
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.development
