@@ -1,0 +1,92 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Pyenv
+.python-version
+
+# pipenv
+#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
+#   However, in case of collaboration, if delegates have different platforms, it could be harmful.
+#Pipfile.lock
+
+# poetry
+#   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
+#   poetry.lock
+#   Pedantic: poetry.lock is not ignored by default
+
+# pdm
+#   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.
+#   pdm.lock
+#   Pedantic: pdm.lock is not ignored by default
+.pdm-plugins/
+.pdm-build/
+
+# virtualenv
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+.tox/
+.nosexy
+.noseids
+nosetests.xml
+jacoco.xml
+libcov.xml
+*cover
+.django_db_test
+
+# Local development env settings
+.env
+db.sqlite3
+db.sqlite3-journal
+
+# Media / static
+media/
+static/
+staticfiles/
+
+# Logs
+logs/
+*.log
+
+# Docker
+.dockerignore
