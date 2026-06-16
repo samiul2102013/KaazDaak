@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # Third party apps
     "rest_framework",
+    "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
     "django_celery_beat",
     "django_celery_results",
@@ -84,6 +85,8 @@ DATABASES = {
         "PORT": config("POSTGRES_PORT", cast=int),
     }
 }
+
+AUTH_USER_MODEL = "users.User"
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -145,6 +148,13 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 20,
     "DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",),
     "EXCEPTION_HANDLER": "apps.common.exceptions.custom_exception_handler",
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.ScopedRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "otp_resend": "3/hour",
+        "login": "10/minute",
+    },
 }
 
 # JWT Configuration
@@ -191,3 +201,11 @@ CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = "UTC"
+
+# OTP Settings
+OTP_EXPIRY_MINUTES = 10
+OTP_MAX_ATTEMPTS = 5
+BD_PHONE_REGEX = r"^01[3-9]\d{8}$"
+
+# Email Settings
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="noreply@kaazdaak.com")
