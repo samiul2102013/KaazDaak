@@ -7,6 +7,11 @@ while ! nc -z $POSTGRES_HOST $POSTGRES_PORT; do
 done
 echo "Postgres ready."
 
-python manage.py migrate --noinput
+# Only the web (gunicorn) container runs migrations. Celery, beat, and flower
+# share this entrypoint and start at the same time — concurrent migrate calls
+# cause "relation already exists" errors on a fresh database.
+if [ "$1" = "gunicorn" ]; then
+    python manage.py migrate --noinput
+fi
 
 exec "$@"
