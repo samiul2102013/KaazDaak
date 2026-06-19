@@ -33,7 +33,7 @@ if SENTRY_DSN:
         send_default_pii=True,
     )
 
-# Email Settings
+# smtp settings
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = config("EMAIL_HOST")
 EMAIL_PORT = config("EMAIL_PORT", cast=int, default=587)
