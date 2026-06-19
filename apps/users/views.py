@@ -80,6 +80,7 @@ class VerifyEmailView(APIView):
                 {
                     "success": False,
                     "error": {"otp_code": "Invalid or expired OTP"},
+                    "message": "Invalid or expired OTP",
                     "status_code": status.HTTP_400_BAD_REQUEST,
                 },
                 status=status.HTTP_400_BAD_REQUEST,
@@ -95,6 +96,7 @@ class VerifyEmailView(APIView):
                     "error": {
                         "otp_code": "Maximum attempts exceeded. Request a new OTP."
                     },
+                    "message": "Maximum attempts exceeded. Request a new OTP.",
                     "status_code": status.HTTP_429_TOO_MANY_REQUESTS,
                 },
                 status=status.HTTP_429_TOO_MANY_REQUESTS,
@@ -105,6 +107,7 @@ class VerifyEmailView(APIView):
                 {
                     "success": False,
                     "error": {"otp_code": "Invalid or expired OTP"},
+                    "message": "Invalid or expired OTP",
                     "status_code": status.HTTP_400_BAD_REQUEST,
                 },
                 status=status.HTTP_400_BAD_REQUEST,
@@ -161,6 +164,7 @@ class LoginView(APIView):
                 {
                     "success": False,
                     "error": {"non_field_errors": ["Invalid credentials"]},
+                    "message": "Invalid credentials",
                     "status_code": status.HTTP_401_UNAUTHORIZED,
                 },
                 status=status.HTTP_401_UNAUTHORIZED,
@@ -174,6 +178,7 @@ class LoginView(APIView):
                             "Email not verified. Please verify your email first."
                         ]
                     },
+                    "message": "Email not verified. Please verify your email first.",
                     "status_code": status.HTTP_403_FORBIDDEN,
                 },
                 status=status.HTTP_403_FORBIDDEN,
