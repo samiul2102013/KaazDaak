@@ -3,6 +3,7 @@ from django.urls import path
 from .views import (
     CurrentUserView,
     HirerRegisterView,
+    KYCSubmitView,
     KaazbirRegisterView,
     LoginView,
     LogoutView,
@@ -24,4 +25,5 @@ urlpatterns = [
     path("token/refresh/", TokenRefreshView.as_view(), name="token-refresh"),
     path("logout/", LogoutView.as_view(), name="auth-logout"),
     path("me/", CurrentUserView.as_view(), name="current-user"),
+    path("kyc/submit/", KYCSubmitView.as_view(), name="kyc-submit"),
 ]

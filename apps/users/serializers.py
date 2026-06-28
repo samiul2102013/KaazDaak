@@ -2,7 +2,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.core import exceptions as django_exceptions
 from rest_framework import serializers
 
-from .models import OTP, KaazbirProfile, User
+from .models import KYCVerification, OTP, KaazbirProfile, User
 from .validators import normalize_bd_phone, validate_bd_phone_number
 
 
@@ -125,6 +125,67 @@ class ResendOTPSerializer(serializers.Serializer):
 class LoginSerializer(serializers.Serializer):
     identifier = serializers.CharField()
     password = serializers.CharField(style={"input_type": "password"})
+
+
+class KYCSubmitSerializer(serializers.Serializer):
+    document_type = serializers.ChoiceField(
+        choices=["national_id", "passport", "driving_license"]
+    )
+    front_image = serializers.ImageField()
+    back_image = serializers.ImageField()
+    selfie_1 = serializers.ImageField(required=False)
+    selfie_2 = serializers.ImageField(required=False)
+    selfie_3 = serializers.ImageField(required=False)
+    selfie_4 = serializers.ImageField(required=False)
+    full_name = serializers.CharField(max_length=255)
+    father_name = serializers.CharField(max_length=255)
+    date_of_birth = serializers.CharField(max_length=20)
+    address = serializers.CharField()
+    post = serializers.CharField(max_length=100)
+    thana = serializers.CharField(max_length=100)
+    district = serializers.CharField(max_length=100)
+    division = serializers.CharField(max_length=100)
+    consent = serializers.BooleanField()
+
+    def validate_consent(self, value):
+        if not value:
+            raise serializers.ValidationError("Consent must be given.")
+        return value
+
+    def validate_front_image(self, value):
+        validate_image_size(value)
+        return value
+
+    def validate_back_image(self, value):
+        validate_image_size(value)
+        return value
+
+    def create(self, validated_data):
+        user = self.context["request"].user
+        extracted_data = {
+            "full_name": validated_data.pop("full_name"),
+            "father_name": validated_data.pop("father_name"),
+            "date_of_birth": validated_data.pop("date_of_birth"),
+            "address": validated_data.pop("address"),
+            "post": validated_data.pop("post"),
+            "thana": validated_data.pop("thana"),
+            "district": validated_data.pop("district"),
+            "division": validated_data.pop("division"),
+        }
+        validated_data["extracted_data"] = extracted_data
+        validated_data["user"] = user
+        kyc = KYCVerification.objects.create(**validated_data)
+        user.kaazbir_profile.kyc_verified = False
+        user.kaazbir_profile.save(update_fields=["kyc_verified"])
+        return kyc
+
+
+def validate_image_size(image):
+    max_size_mb = 5
+    if image.size > max_size_mb * 1024 * 1024:
+        raise serializers.ValidationError(
+            f"Image size must not exceed {max_size_mb}MB."
+        )
 
 
 class OTPSerializer(serializers.ModelSerializer):

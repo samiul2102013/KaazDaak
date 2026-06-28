@@ -12,8 +12,10 @@ from rest_framework_simplejwt.views import TokenRefreshView as SimpleJWTTokenRef
 from apps.common.responses import success_response
 
 from .models import User
+from .permissions import IsKaazbir
 from .serializers import (
     HirerRegisterSerializer,
+    KYCSubmitSerializer,
     KaazbirRegisterSerializer,
     LoginSerializer,
     ResendOTPSerializer,
@@ -215,6 +217,27 @@ class CurrentUserView(APIView):
     def get(self, request):
         serializer = UserSerializer(request.user)
         return success_response(data=serializer.data)
+
+
+class KYCSubmitView(APIView):
+    permission_classes = [IsAuthenticated, IsKaazbir]
+
+    def post(self, request):
+        serializer = KYCSubmitSerializer(
+            data=request.data,
+            context={"request": request},
+        )
+        serializer.is_valid(raise_exception=True)
+        kyc = serializer.save()
+        return success_response(
+            data={
+                "id": str(kyc.id),
+                "document_type": kyc.document_type,
+                "status": kyc.status,
+            },
+            message="KYC submitted successfully.",
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class TokenRefreshView(SimpleJWTTokenRefreshView):
