@@ -45,7 +45,6 @@ class User(AbstractBaseUser, PermissionsMixin, TimestampedModel):
 
 
 def kyc_file_path(instance, filename: str) -> str:
-    ext = filename.rsplit(".", 1)[-1] if "." in filename else "jpg"
     return f"kyc/{instance.user_id}/{instance.document_type}/{filename}"
 
 
