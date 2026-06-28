@@ -46,6 +46,9 @@ ENV REDIS_URL=redis://dummy:6379/0
 
 RUN python manage.py collectstatic --noinput
 
+# Ensure media directory exists and is writable by appuser
+RUN mkdir -p /app/media && chown -R appuser:appuser /app/media
+
 # Reset DJANGO_SETTINGS_MODULE so it's controlled by .env at runtime
 ENV DJANGO_SETTINGS_MODULE=""
 # Clear dummy secrets from the image layer
