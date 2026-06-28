@@ -78,9 +78,7 @@ class KYCVerification(TimestampedModel):
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name="kyc_verification"
     )
-    document_type = models.CharField(
-        max_length=30, choices=DocumentType.choices
-    )
+    document_type = models.CharField(max_length=30, choices=DocumentType.choices)
     front_image = models.ImageField(upload_to=kyc_file_path)
     back_image = models.ImageField(upload_to=kyc_file_path)
     selfie_1 = models.ImageField(upload_to=kyc_file_path, blank=True, null=True)
