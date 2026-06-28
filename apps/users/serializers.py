@@ -175,8 +175,16 @@ class KYCSubmitSerializer(serializers.Serializer):
         validated_data["extracted_data"] = extracted_data
         validated_data["user"] = user
         kyc = KYCVerification.objects.create(**validated_data)
-        user.kaazbir_profile.kyc_verified = False
-        user.kaazbir_profile.save(update_fields=["kyc_verified"])
+        profile, _ = KaazbirProfile.objects.get_or_create(
+            user=user,
+            defaults={
+                "business_name": extracted_data.get("full_name", ""),
+                "service_category": "",
+                "address": extracted_data.get("address", ""),
+            },
+        )
+        profile.kyc_verified = False
+        profile.save(update_fields=["kyc_verified"])
         return kyc
 
 
