@@ -9,7 +9,7 @@ from django.core.mail import send_mail
 from django.db import transaction
 from django.utils import timezone
 
-from .models import OTP, ProviderProfile, User
+from .models import OTP, KaazbirProfile, User
 from .validators import normalize_bd_phone
 
 logger = logging.getLogger(__name__)
@@ -46,7 +46,7 @@ def _generate_otp_code():
 class AuthService:
     @staticmethod
     @transaction.atomic
-    def register_general_user(validated_data):
+    def register_hirer(validated_data):
         email = validated_data["email"]
         username = _generate_username_from_email(email)
         user = User.objects.create_user(
@@ -54,7 +54,7 @@ class AuthService:
             email=email,
             full_name=validated_data["full_name"],
             password=validated_data["password"],
-            role="general",
+            role="hirer",
             is_active=True,
             is_email_verified=False,
         )
@@ -63,7 +63,7 @@ class AuthService:
 
     @staticmethod
     @transaction.atomic
-    def register_provider(validated_data):
+    def register_kaazbir(validated_data):
         email = validated_data["email"]
         phone_number = normalize_bd_phone(validated_data["phone_number"])
         username = _generate_username_from_email(email)
@@ -73,11 +73,11 @@ class AuthService:
             phone_number=phone_number,
             full_name=validated_data["full_name"],
             password=validated_data["password"],
-            role="provider",
+            role="kaazbir",
             is_active=True,
             is_email_verified=False,
         )
-        ProviderProfile.objects.create(
+        KaazbirProfile.objects.create(
             user=user,
             business_name=validated_data.get("business_name", ""),
             service_category=validated_data.get("service_category", ""),

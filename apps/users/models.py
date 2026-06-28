@@ -19,8 +19,8 @@ class User(AbstractBaseUser, PermissionsMixin, TimestampedModel):
     full_name = models.CharField(max_length=255)
     role = models.CharField(
         max_length=20,
-        choices=[("general", "General"), ("provider", "Provider")],
-        default="general",
+        choices=[("hirer", "Hirer"), ("kaazbir", "KaazBir")],
+        default="hirer",
     )
     is_email_verified = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
@@ -44,10 +44,10 @@ class User(AbstractBaseUser, PermissionsMixin, TimestampedModel):
         return self.username
 
 
-class ProviderProfile(TimestampedModel):
+class KaazbirProfile(TimestampedModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.OneToOneField(
-        User, on_delete=models.CASCADE, related_name="provider_profile"
+        User, on_delete=models.CASCADE, related_name="kaazbir_profile"
     )
     business_name = models.CharField(max_length=255)
     service_category = models.CharField(max_length=100)

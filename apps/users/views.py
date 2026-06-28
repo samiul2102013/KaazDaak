@@ -13,9 +13,9 @@ from apps.common.responses import success_response
 
 from .models import User
 from .serializers import (
-    GeneralRegisterSerializer,
+    HirerRegisterSerializer,
+    KaazbirRegisterSerializer,
     LoginSerializer,
-    ProviderRegisterSerializer,
     ResendOTPSerializer,
     UserSerializer,
     VerifyEmailSerializer,
@@ -25,14 +25,14 @@ from .services import AuthService
 logger = logging.getLogger(__name__)
 
 
-class GeneralRegisterView(APIView):
+class HirerRegisterView(APIView):
     permission_classes = [AllowAny]
     throttle_scope = None
 
     def post(self, request):
-        serializer = GeneralRegisterSerializer(data=request.data)
+        serializer = HirerRegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = AuthService.register_general_user(serializer.validated_data)
+        user = AuthService.register_hirer(serializer.validated_data)
         return success_response(
             data={
                 "user_id": str(user.id),
@@ -44,14 +44,14 @@ class GeneralRegisterView(APIView):
         )
 
 
-class ProviderRegisterView(APIView):
+class KaazbirRegisterView(APIView):
     permission_classes = [AllowAny]
     throttle_scope = None
 
     def post(self, request):
-        serializer = ProviderRegisterSerializer(data=request.data)
+        serializer = KaazbirRegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = AuthService.register_provider(serializer.validated_data)
+        user = AuthService.register_kaazbir(serializer.validated_data)
         return success_response(
             data={
                 "user_id": str(user.id),

@@ -17,43 +17,43 @@ def api_client():
 
 
 @pytest.fixture
-def general_user():
+def hirer_user():
     return User.objects.create_user(
         username="testuser",
         email="testuser@example.com",
         password="testpass123",
         full_name="Test User",
-        role="general",
+        role="hirer",
         is_email_verified=False,
     )
 
 
 @pytest.mark.django_db
 class TestOTPGeneration:
-    def test_generate_and_send_otp(self, general_user):
-        AuthService.generate_and_send_otp(general_user)
+    def test_generate_and_send_otp(self, hirer_user):
+        AuthService.generate_and_send_otp(hirer_user)
         assert len(mail.outbox) == 1
         assert "OTP" in mail.outbox[0].subject
-        assert general_user.email in mail.outbox[0].to
+        assert hirer_user.email in mail.outbox[0].to
 
-    def test_otp_stored_hashed(self, general_user):
-        AuthService.generate_and_send_otp(general_user)
-        otp = OTP.objects.filter(user=general_user).first()
+    def test_otp_stored_hashed(self, hirer_user):
+        AuthService.generate_and_send_otp(hirer_user)
+        otp = OTP.objects.filter(user=hirer_user).first()
         assert otp is not None
         assert otp.code_hash
         # Ensure it's a SHA-256 hex digest (64 chars)
         assert len(otp.code_hash) == 64
 
-    def test_otp_not_stored_plaintext(self, general_user):
-        AuthService.generate_and_send_otp(general_user)
-        otp = OTP.objects.filter(user=general_user).first()
+    def test_otp_not_stored_plaintext(self, hirer_user):
+        AuthService.generate_and_send_otp(hirer_user)
+        otp = OTP.objects.filter(user=hirer_user).first()
         email_body = mail.outbox[0].body
         # Extract the code from the email
         assert otp.code_hash != email_body
 
-    def test_otp_expiry_time(self, general_user):
-        AuthService.generate_and_send_otp(general_user)
-        otp = OTP.objects.filter(user=general_user).first()
+    def test_otp_expiry_time(self, hirer_user):
+        AuthService.generate_and_send_otp(hirer_user)
+        otp = OTP.objects.filter(user=hirer_user).first()
         expected_expiry = timezone.now() + timedelta(
             minutes=settings.OTP_EXPIRY_MINUTES
         )
@@ -72,56 +72,56 @@ class TestOTPVerification:
                 return word
         return None
 
-    def test_verify_valid_otp(self, general_user):
-        code = self._extract_otp_code(general_user)
+    def test_verify_valid_otp(self, hirer_user):
+        code = self._extract_otp_code(hirer_user)
         assert code is not None
 
-        result = AuthService.verify_otp(general_user, code)
+        result = AuthService.verify_otp(hirer_user, code)
         assert result is True
 
-        general_user.refresh_from_db()
-        assert general_user.is_email_verified is True
+        hirer_user.refresh_from_db()
+        assert hirer_user.is_email_verified is True
 
-    def test_verify_invalid_otp(self, general_user):
-        AuthService.generate_and_send_otp(general_user)
-        result = AuthService.verify_otp(general_user, "000000")
+    def test_verify_invalid_otp(self, hirer_user):
+        AuthService.generate_and_send_otp(hirer_user)
+        result = AuthService.verify_otp(hirer_user, "000000")
         assert result is False
-        general_user.refresh_from_db()
-        assert general_user.is_email_verified is False
+        hirer_user.refresh_from_db()
+        assert hirer_user.is_email_verified is False
 
-    def test_verify_otp_wrong_code_increments_attempts(self, general_user):
-        AuthService.generate_and_send_otp(general_user)
-        otp = OTP.objects.filter(user=general_user).first()
+    def test_verify_otp_wrong_code_increments_attempts(self, hirer_user):
+        AuthService.generate_and_send_otp(hirer_user)
+        otp = OTP.objects.filter(user=hirer_user).first()
         assert otp.attempts == 0
 
-        AuthService.verify_otp(general_user, "000000")
+        AuthService.verify_otp(hirer_user, "000000")
         otp.refresh_from_db()
         assert otp.attempts == 1
 
-    def test_max_otp_attempts_lockout(self, general_user):
-        AuthService.generate_and_send_otp(general_user)
+    def test_max_otp_attempts_lockout(self, hirer_user):
+        AuthService.generate_and_send_otp(hirer_user)
         for _ in range(settings.OTP_MAX_ATTEMPTS):
-            AuthService.verify_otp(general_user, "000000")
-        otp = OTP.objects.filter(user=general_user).first()
+            AuthService.verify_otp(hirer_user, "000000")
+        otp = OTP.objects.filter(user=hirer_user).first()
         otp.refresh_from_db()
         assert otp.attempts == settings.OTP_MAX_ATTEMPTS
         # Next attempt should fail due to max attempts
-        result = AuthService.verify_otp(general_user, "000000")
+        result = AuthService.verify_otp(hirer_user, "000000")
         assert result is False
 
-    def test_verify_expired_otp(self, general_user):
-        AuthService.generate_and_send_otp(general_user)
-        otp = OTP.objects.filter(user=general_user).first()
+    def test_verify_expired_otp(self, hirer_user):
+        AuthService.generate_and_send_otp(hirer_user)
+        otp = OTP.objects.filter(user=hirer_user).first()
         otp.expires_at = timezone.now() - timedelta(minutes=1)
         otp.save(update_fields=["expires_at"])
 
-        result = AuthService.verify_otp(general_user, "654321")
+        result = AuthService.verify_otp(hirer_user, "654321")
         assert result is False
 
-    def test_verify_otp_twice_fails(self, general_user):
-        code = self._extract_otp_code(general_user)
-        assert AuthService.verify_otp(general_user, code) is True
-        assert AuthService.verify_otp(general_user, code) is False
+    def test_verify_otp_twice_fails(self, hirer_user):
+        code = self._extract_otp_code(hirer_user)
+        assert AuthService.verify_otp(hirer_user, code) is True
+        assert AuthService.verify_otp(hirer_user, code) is False
 
 
 @pytest.mark.django_db
@@ -133,8 +133,9 @@ class TestVerifyEmailEndpoint:
             "full_name": "Verify User",
             "email": "verify@example.com",
             "password": "StrongPass123!",
+            "confirm_password": "StrongPass123!",
         }
-        api_client.post("/api/v1/auth/register/general/", data, format="json")
+        api_client.post("/api/v1/auth/register/hirer/", data, format="json")
         body = mail.outbox[-1].body
         for word in body.split():
             if word.isdigit() and len(word) == 6:
@@ -194,8 +195,9 @@ class TestResendOTPEndpoint:
             "full_name": "Resend User",
             "email": "resend@example.com",
             "password": "StrongPass123!",
+            "confirm_password": "StrongPass123!",
         }
-        api_client.post("/api/v1/auth/register/general/", data, format="json")
+        api_client.post("/api/v1/auth/register/hirer/", data, format="json")
         mail.outbox.clear()
 
         response = api_client.post(

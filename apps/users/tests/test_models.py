@@ -1,7 +1,7 @@
 import pytest
 from django.db import IntegrityError
 
-from apps.users.models import OTP, ProviderProfile, User
+from apps.users.models import OTP, KaazbirProfile, User
 
 
 @pytest.mark.django_db
@@ -16,7 +16,7 @@ class TestUserModel:
         assert user.username == "john"
         assert user.email == "john@example.com"
         assert user.check_password("securepass123")
-        assert user.role == "general"
+        assert user.role == "hirer"
         assert not user.is_email_verified
         assert user.is_active
         assert not user.is_staff
@@ -41,7 +41,7 @@ class TestUserModel:
         )
         assert admin.is_staff
         assert admin.is_superuser
-        assert admin.role == "general"
+        assert admin.role == "hirer"
         assert admin.is_email_verified
 
     def test_user_str(self):
@@ -78,16 +78,16 @@ class TestUserModel:
 
 
 @pytest.mark.django_db
-class TestProviderProfileModel:
-    def test_create_provider_profile(self):
+class TestKaazbirProfileModel:
+    def test_create_kaazbir_profile(self):
         user = User.objects.create_user(
-            username="provider1",
-            email="provider@example.com",
+            username="kaazbir1",
+            email="kaazbir@example.com",
             password="pass123",
-            full_name="Provider One",
-            role="provider",
+            full_name="KaazBir One",
+            role="kaazbir",
         )
-        profile = ProviderProfile.objects.create(
+        profile = KaazbirProfile.objects.create(
             user=user,
             business_name="Test Biz",
             service_category="Cleaning",
@@ -96,21 +96,21 @@ class TestProviderProfileModel:
         assert profile.business_name == "Test Biz"
         assert profile.service_category == "Cleaning"
         assert profile.address == "123 Main St"
-        assert str(profile) == "Test Biz (provider1)"
+        assert str(profile) == "Test Biz (kaazbir1)"
 
-    def test_provider_profile_one_to_one(self):
+    def test_kaazbir_profile_one_to_one(self):
         user = User.objects.create_user(
-            username="provider2",
-            email="provider2@example.com",
+            username="kaazbir2",
+            email="kaazbir2@example.com",
             password="pass123",
-            full_name="Provider Two",
-            role="provider",
+            full_name="KaazBir Two",
+            role="kaazbir",
         )
-        ProviderProfile.objects.create(
+        KaazbirProfile.objects.create(
             user=user, business_name="Biz", service_category="Cat", address="Addr"
         )
-        assert hasattr(user, "provider_profile")
-        assert user.provider_profile.business_name == "Biz"
+        assert hasattr(user, "kaazbir_profile")
+        assert user.kaazbir_profile.business_name == "Biz"
 
 
 @pytest.mark.django_db

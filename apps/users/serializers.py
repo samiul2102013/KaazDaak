@@ -2,18 +2,18 @@ from django.contrib.auth.password_validation import validate_password
 from django.core import exceptions as django_exceptions
 from rest_framework import serializers
 
-from .models import OTP, ProviderProfile, User
+from .models import OTP, KaazbirProfile, User
 from .validators import normalize_bd_phone, validate_bd_phone_number
 
 
-class ProviderProfileSerializer(serializers.ModelSerializer):
+class KaazbirProfileSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ProviderProfile
+        model = KaazbirProfile
         fields = ["business_name", "service_category", "address"]
 
 
 class UserSerializer(serializers.ModelSerializer):
-    provider_profile = ProviderProfileSerializer(read_only=True)
+    kaazbir_profile = KaazbirProfileSerializer(read_only=True)
 
     class Meta:
         model = User
@@ -25,14 +25,17 @@ class UserSerializer(serializers.ModelSerializer):
             "full_name",
             "role",
             "is_email_verified",
-            "provider_profile",
+            "kaazbir_profile",
         ]
 
 
-class GeneralRegisterSerializer(serializers.Serializer):
+class HirerRegisterSerializer(serializers.Serializer):
     full_name = serializers.CharField(max_length=255)
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True, style={"input_type": "password"})
+    confirm_password = serializers.CharField(
+        write_only=True, style={"input_type": "password"}
+    )
 
     def validate_password(self, value):
         try:
@@ -49,14 +52,22 @@ class GeneralRegisterSerializer(serializers.Serializer):
         return value.lower()
 
     def validate(self, attrs):
+        if attrs.get("password") != attrs.get("confirm_password"):
+            raise serializers.ValidationError(
+                {"confirm_password": "Passwords do not match."}
+            )
+        attrs.pop("confirm_password")
         return attrs
 
 
-class ProviderRegisterSerializer(serializers.Serializer):
+class KaazbirRegisterSerializer(serializers.Serializer):
     full_name = serializers.CharField(max_length=255)
     email = serializers.EmailField()
     phone_number = serializers.CharField(max_length=20)
     password = serializers.CharField(write_only=True, style={"input_type": "password"})
+    confirm_password = serializers.CharField(
+        write_only=True, style={"input_type": "password"}
+    )
     business_name = serializers.CharField(
         max_length=255, required=False, allow_blank=True
     )
@@ -86,6 +97,14 @@ class ProviderRegisterSerializer(serializers.Serializer):
                 "A user with this phone number already exists."
             )
         return value
+
+    def validate(self, attrs):
+        if attrs.get("password") != attrs.get("confirm_password"):
+            raise serializers.ValidationError(
+                {"confirm_password": "Passwords do not match."}
+            )
+        attrs.pop("confirm_password")
+        return attrs
 
 
 class VerifyEmailSerializer(serializers.Serializer):
