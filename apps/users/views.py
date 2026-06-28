@@ -15,8 +15,8 @@ from .models import User
 from .permissions import IsKaazbir
 from .serializers import (
     HirerRegisterSerializer,
-    KYCSubmitSerializer,
     KaazbirRegisterSerializer,
+    KYCSubmitSerializer,
     LoginSerializer,
     ResendOTPSerializer,
     UserSerializer,

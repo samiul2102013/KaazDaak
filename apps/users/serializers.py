@@ -2,7 +2,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.core import exceptions as django_exceptions
 from rest_framework import serializers
 
-from .models import KYCVerification, OTP, KaazbirProfile, User
+from .models import OTP, KaazbirProfile, KYCVerification, User
 from .validators import normalize_bd_phone, validate_bd_phone_number
 
 
