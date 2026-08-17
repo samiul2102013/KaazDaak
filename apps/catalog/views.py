@@ -4,26 +4,26 @@ from rest_framework.views import APIView
 from apps.common.pagination import StandardResultsPagination
 from apps.common.responses import success_response
 
-from .models import Campaign, Category
-from .serializers import CampaignSerializer, CategorySerializer
+from .models import Campaign, Service
+from .serializers import CampaignSerializer, ServiceSerializer
 
 
-class CategoryListView(APIView):
+class ServiceListView(APIView):
     def get(self, request):
         paginator = StandardResultsPagination()
-        page = paginator.paginate_queryset(Category.objects.all(), request)
-        serializer = CategorySerializer(page, many=True, context={"request": request})
+        page = paginator.paginate_queryset(Service.objects.all(), request)
+        serializer = ServiceSerializer(page, many=True, context={"request": request})
         return success_response(
-            data=serializer.data, message="Categories fetched successfully."
+            data=serializer.data, message="Services fetched successfully."
         )
 
 
-class CategoryDetailView(APIView):
+class ServiceDetailView(APIView):
     def get(self, request, pk):
-        category = get_object_or_404(Category, pk=pk)
-        serializer = CategorySerializer(category, context={"request": request})
+        service = get_object_or_404(Service, pk=pk)
+        serializer = ServiceSerializer(service, context={"request": request})
         return success_response(
-            data=serializer.data, message="Category fetched successfully."
+            data=serializer.data, message="Service fetched successfully."
         )
 
 
