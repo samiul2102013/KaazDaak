@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from apps.catalog.models import Campaign, Category, KasbirService, SubCategory
+from apps.catalog.models import Campaign, KasbirService, Service, Subservice
 from apps.users.models import User
 
 
@@ -29,13 +29,13 @@ def authenticated_client(api_client):
 
 
 @pytest.fixture
-def category():
-    return Category.objects.create(name="Home & Personal Services")
+def service():
+    return Service.objects.create(name="Home & Personal Services")
 
 
 @pytest.fixture
-def sub_category(category):
-    return SubCategory.objects.create(category=category, name="House Cleaning")
+def subservice(service):
+    return Subservice.objects.create(service=service, name="House Cleaning")
 
 
 @pytest.fixture
@@ -49,37 +49,37 @@ def campaign():
 
 
 @pytest.mark.django_db
-class TestCategoryList:
-    LIST_URL = "/api/v1/categories/"
+class TestServiceList:
+    LIST_URL = "/api/v1/services/"
 
     def test_unauthenticated_returns_401(self, api_client):
         response = api_client.get(self.LIST_URL)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_list_returns_categories_with_sub_categories(
-        self, authenticated_client, category, sub_category
+    def test_list_returns_services_with_subservices(
+        self, authenticated_client, service, subservice
     ):
         response = authenticated_client.get(self.LIST_URL)
         assert response.status_code == status.HTTP_200_OK
         assert response.data["success"] is True
-        assert response.data["message"] == "Categories fetched successfully."
+        assert response.data["message"] == "Services fetched successfully."
         data = response.data["data"]
         assert len(data) == 1
         assert data[0]["name"] == "Home & Personal Services"
-        assert data[0]["sub_categories"][0]["name"] == "House Cleaning"
+        assert data[0]["subservices"][0]["name"] == "House Cleaning"
 
 
 @pytest.mark.django_db
-class TestCategoryDetail:
-    DETAIL_URL = "/api/v1/categories/{pk}/"
+class TestServiceDetail:
+    DETAIL_URL = "/api/v1/services/{pk}/"
 
-    def test_detail_success(self, authenticated_client, category, sub_category):
-        url = self.DETAIL_URL.format(pk=category.id)
+    def test_detail_success(self, authenticated_client, service, subservice):
+        url = self.DETAIL_URL.format(pk=service.id)
         response = authenticated_client.get(url)
         assert response.status_code == status.HTTP_200_OK
         assert response.data["success"] is True
-        assert response.data["data"]["id"] == str(category.id)
-        assert len(response.data["data"]["sub_categories"]) == 1
+        assert response.data["data"]["id"] == str(service.id)
+        assert len(response.data["data"]["subservices"]) == 1
 
     def test_detail_not_found(self, authenticated_client):
         url = self.DETAIL_URL.format(pk="00000000-0000-0000-0000-000000000000")
@@ -119,7 +119,7 @@ class TestCampaignList:
 
 @pytest.mark.django_db
 class TestKasbirServiceModel:
-    def test_create_service(self, category, sub_category):
+    def test_create_service(self, service, subservice):
         kaazbir = User.objects.create_user(
             username="kaazbircat",
             email="kaazbir.cat@example.com",
@@ -128,14 +128,14 @@ class TestKasbirServiceModel:
             role="kaazbir",
             is_email_verified=True,
         )
-        service = KasbirService.objects.create(kaazbir=kaazbir, category=category)
-        service.sub_categories.add(sub_category)
-        assert service.kaazbir == kaazbir
-        assert service.category == category
-        assert list(service.sub_categories.all()) == [sub_category]
-        assert str(service) == "kaazbircat - Home & Personal Services"
+        kasbir_service = KasbirService.objects.create(kaazbir=kaazbir, service=service)
+        kasbir_service.subservices.add(subservice)
+        assert kasbir_service.kaazbir == kaazbir
+        assert kasbir_service.service == service
+        assert list(kasbir_service.subservices.all()) == [subservice]
+        assert str(kasbir_service) == "kaazbircat - Home & Personal Services"
 
-    def test_duplicate_service_for_same_kaazbir_and_category(self, category):
+    def test_duplicate_service_for_same_kaazbir_and_service(self, service):
         kaazbir = User.objects.create_user(
             username="kaazbirdup",
             email="kaazbir.dup@example.com",
@@ -144,6 +144,6 @@ class TestKasbirServiceModel:
             role="kaazbir",
             is_email_verified=True,
         )
-        KasbirService.objects.create(kaazbir=kaazbir, category=category)
+        KasbirService.objects.create(kaazbir=kaazbir, service=service)
         with pytest.raises(IntegrityError):
-            KasbirService.objects.create(kaazbir=kaazbir, category=category)
+            KasbirService.objects.create(kaazbir=kaazbir, service=service)

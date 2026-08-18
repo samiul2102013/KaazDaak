@@ -1,26 +1,26 @@
 from django.contrib import admin
 
-from .models import Campaign, Category, KasbirService, SubCategory
+from .models import Campaign, KasbirService, Service, Subservice
 
 
-@admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
+@admin.register(Service)
+class ServiceAdmin(admin.ModelAdmin):
     list_display = ("name", "created_at")
     search_fields = ("name",)
 
 
-@admin.register(SubCategory)
-class SubCategoryAdmin(admin.ModelAdmin):
-    list_display = ("name", "category")
-    list_filter = ("category",)
-    search_fields = ("name", "category__name")
+@admin.register(Subservice)
+class SubserviceAdmin(admin.ModelAdmin):
+    list_display = ("name", "service")
+    list_filter = ("service",)
+    search_fields = ("name", "service__name")
 
 
 @admin.register(KasbirService)
 class KasbirServiceAdmin(admin.ModelAdmin):
-    list_display = ("kaazbir", "category")
-    list_filter = ("category",)
-    search_fields = ("kaazbir__username", "category__name")
+    list_display = ("kaazbir", "service")
+    list_filter = ("service",)
+    search_fields = ("kaazbir__username", "service__name")
 
 
 @admin.register(Campaign)
