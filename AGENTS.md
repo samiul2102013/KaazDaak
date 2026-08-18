@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Django 5.1 + DRF backend for **KaazDaak**, a Bangladeshi gig-work platform. Roles: `hirer` (employer) and `kaazbir` (worker). No README exists; this file is the primary doc.
+Django 5.2 LTS + DRF backend for **KaazDaak**, a Bangladeshi gig-work platform. Roles: `hirer` (employer) and `kaazbir` (worker). No README exists; this file is the primary doc.
 
 ## Commands
 

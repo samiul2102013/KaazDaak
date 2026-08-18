@@ -34,7 +34,7 @@ class User(AbstractBaseUser, PermissionsMixin, TimestampedModel):
     class Meta:
         constraints = [
             models.CheckConstraint(
-                check=models.Q(email__isnull=False)
+                condition=models.Q(email__isnull=False)
                 | models.Q(phone_number__isnull=False),
                 name="user_has_email_or_phone",
             )
