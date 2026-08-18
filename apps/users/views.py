@@ -15,6 +15,8 @@ from .models import User
 from .permissions import IsKaazbir
 from .serializers import (
     HirerRegisterSerializer,
+    KaazbirProfileDetailSerializer,
+    KaazbirProfileUpdateSerializer,
     KaazbirRegisterSerializer,
     KYCSubmitSerializer,
     LoginSerializer,
@@ -22,7 +24,7 @@ from .serializers import (
     UserSerializer,
     VerifyEmailSerializer,
 )
-from .services import AuthService
+from .services import AuthService, KaazbirProfileService
 
 logger = logging.getLogger(__name__)
 
@@ -237,6 +239,34 @@ class KYCSubmitView(APIView):
             },
             message="KYC submitted successfully.",
             status=status.HTTP_201_CREATED,
+        )
+
+
+class KaazbirProfileView(APIView):
+    permission_classes = [IsAuthenticated, IsKaazbir]
+
+    def get(self, request):
+        profile = KaazbirProfileService.get_or_create_profile(request.user)
+        serializer = KaazbirProfileDetailSerializer(
+            profile, context={"request": request}
+        )
+        return success_response(
+            data=serializer.data,
+            message="Profile fetched successfully.",
+        )
+
+    def post(self, request):
+        serializer = KaazbirProfileUpdateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        profile = KaazbirProfileService.update_profile(
+            request.user, serializer.validated_data
+        )
+        return success_response(
+            data={
+                "id": str(profile.id),
+                "is_profile_complete": profile.is_profile_complete,
+            },
+            message="Profile updated successfully.",
         )
 
 

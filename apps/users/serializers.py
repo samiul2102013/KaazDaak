@@ -2,14 +2,73 @@ from django.contrib.auth.password_validation import validate_password
 from django.core import exceptions as django_exceptions
 from rest_framework import serializers
 
-from .models import OTP, KaazbirProfile, KYCVerification, User
+from .models import OTP, KaazbirProfile, KYCSelfie, KYCVerification, User
 from .validators import normalize_bd_phone, validate_bd_phone_number
 
 
 class KaazbirProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = KaazbirProfile
-        fields = ["business_name", "service_category", "address"]
+        fields = [
+            "id",
+            "business_name",
+            "service_category",
+            "address",
+            "kyc_verified",
+            "service_start_time",
+            "service_end_time",
+            "division",
+            "district",
+            "upazila",
+            "location",
+            "is_profile_complete",
+        ]
+
+
+class KaazbirProfileDetailSerializer(serializers.ModelSerializer):
+    services = serializers.SerializerMethodField()
+
+    class Meta:
+        model = KaazbirProfile
+        fields = [
+            "id",
+            "business_name",
+            "service_category",
+            "address",
+            "kyc_verified",
+            "service_start_time",
+            "service_end_time",
+            "division",
+            "district",
+            "upazila",
+            "location",
+            "is_profile_complete",
+            "services",
+        ]
+
+    def get_services(self, obj):
+        from apps.catalog.serializers import KasbirServiceSerializer
+
+        services = (
+            obj.user.kasbir_services.all()
+            .select_related("service")
+            .prefetch_related("subservices")
+        )
+        return KasbirServiceSerializer(services, many=True, context=self.context).data
+
+
+class KaazbirProfileUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = KaazbirProfile
+        fields = [
+            "business_name",
+            "service_start_time",
+            "service_end_time",
+            "division",
+            "district",
+            "upazila",
+            "location",
+        ]
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -133,10 +192,9 @@ class KYCSubmitSerializer(serializers.Serializer):
     )
     front_image = serializers.ImageField()
     back_image = serializers.ImageField()
-    selfie_1 = serializers.ImageField(required=False)
-    selfie_2 = serializers.ImageField(required=False)
-    selfie_3 = serializers.ImageField(required=False)
-    selfie_4 = serializers.ImageField(required=False)
+    selfies = serializers.ListField(
+        child=serializers.ImageField(), required=False, allow_empty=True
+    )
     full_name = serializers.CharField(max_length=255)
     father_name = serializers.CharField(max_length=255)
     date_of_birth = serializers.CharField(max_length=20)
@@ -160,8 +218,14 @@ class KYCSubmitSerializer(serializers.Serializer):
         validate_image_size(value)
         return value
 
+    def validate_selfies(self, value):
+        for image in value:
+            validate_image_size(image)
+        return value
+
     def create(self, validated_data):
         user = self.context["request"].user
+        selfies = validated_data.pop("selfies", [])
         extracted_data = {
             "full_name": validated_data.pop("full_name"),
             "father_name": validated_data.pop("father_name"),
@@ -175,6 +239,8 @@ class KYCSubmitSerializer(serializers.Serializer):
         validated_data["extracted_data"] = extracted_data
         validated_data["user"] = user
         kyc = KYCVerification.objects.create(**validated_data)
+        for index, image in enumerate(selfies):
+            KYCSelfie.objects.create(kyc=kyc, image=image, order=index)
         profile, _ = KaazbirProfile.objects.get_or_create(
             user=user,
             defaults={

@@ -184,3 +184,37 @@ class AuthService:
             if user_obj.check_password(password):
                 return user_obj
             return None
+
+
+class KaazbirProfileService:
+    @staticmethod
+    def get_or_create_profile(user):
+        profile, _ = KaazbirProfile.objects.get_or_create(
+            user=user,
+            defaults={
+                "business_name": "",
+                "service_category": "",
+                "address": "",
+            },
+        )
+        return profile
+
+    @staticmethod
+    def update_profile(user, validated_data):
+        profile = KaazbirProfileService.get_or_create_profile(user)
+        for field, value in validated_data.items():
+            setattr(profile, field, value)
+        profile.is_profile_complete = KaazbirProfileService.is_complete(profile)
+        profile.save()
+        return profile
+
+    @staticmethod
+    def is_complete(profile):
+        return bool(
+            profile.business_name
+            and profile.division
+            and profile.district
+            and profile.upazila
+            and profile.service_start_time
+            and profile.service_end_time
+        )

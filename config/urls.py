@@ -6,6 +6,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from apps.users.views import KaazbirProfileView
+
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
@@ -18,6 +20,11 @@ urlpatterns = [
     path("api/health/", health_check, name="health_check"),
     path("api/v1/auth/", include("apps.users.urls")),
     path("api/v1/", include("apps.catalog.urls")),
+    path(
+        "api/v1/kaazbir/profile/",
+        KaazbirProfileView.as_view(),
+        name="kaazbir-profile",
+    ),
 ]
 
 if settings.DEBUG:
