@@ -1,20 +1,20 @@
 from rest_framework import serializers
 
-from .models import Campaign, Category, SubCategory
+from .models import Campaign, Service, Subservice
 
 
-class SubCategorySerializer(serializers.ModelSerializer):
+class SubserviceSerializer(serializers.ModelSerializer):
     class Meta:
-        model = SubCategory
+        model = Subservice
         fields = ["id", "name", "picture"]
 
 
-class CategorySerializer(serializers.ModelSerializer):
-    sub_categories = SubCategorySerializer(many=True, read_only=True)
+class ServiceSerializer(serializers.ModelSerializer):
+    subservices = SubserviceSerializer(many=True, read_only=True)
 
     class Meta:
-        model = Category
-        fields = ["id", "name", "picture", "sub_categories"]
+        model = Service
+        fields = ["id", "name", "picture", "subservices"]
 
 
 class CampaignSerializer(serializers.ModelSerializer):
