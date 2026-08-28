@@ -18,20 +18,44 @@ class Migration(migrations.Migration):
         migrations.SeparateDatabaseAndState(
             database_operations=[
                 migrations.RunSQL(
-                    sql="ALTER TABLE users_kycverification DROP COLUMN IF EXISTS selfie_1 CASCADE;",
-                    reverse_sql="ALTER TABLE users_kycverification ADD COLUMN selfie_1 varchar(100) NULL;",
+                    sql=(
+                        "ALTER TABLE users_kycverification "
+                        "DROP COLUMN IF EXISTS selfie_1 CASCADE;"
+                    ),
+                    reverse_sql=(
+                        "ALTER TABLE users_kycverification "
+                        "ADD COLUMN selfie_1 varchar(100) NULL;"
+                    ),
                 ),
                 migrations.RunSQL(
-                    sql="ALTER TABLE users_kycverification DROP COLUMN IF EXISTS selfie_2 CASCADE;",
-                    reverse_sql="ALTER TABLE users_kycverification ADD COLUMN selfie_2 varchar(100) NULL;",
+                    sql=(
+                        "ALTER TABLE users_kycverification "
+                        "DROP COLUMN IF EXISTS selfie_2 CASCADE;"
+                    ),
+                    reverse_sql=(
+                        "ALTER TABLE users_kycverification "
+                        "ADD COLUMN selfie_2 varchar(100) NULL;"
+                    ),
                 ),
                 migrations.RunSQL(
-                    sql="ALTER TABLE users_kycverification DROP COLUMN IF EXISTS selfie_3 CASCADE;",
-                    reverse_sql="ALTER TABLE users_kycverification ADD COLUMN selfie_3 varchar(100) NULL;",
+                    sql=(
+                        "ALTER TABLE users_kycverification "
+                        "DROP COLUMN IF EXISTS selfie_3 CASCADE;"
+                    ),
+                    reverse_sql=(
+                        "ALTER TABLE users_kycverification "
+                        "ADD COLUMN selfie_3 varchar(100) NULL;"
+                    ),
                 ),
                 migrations.RunSQL(
-                    sql="ALTER TABLE users_kycverification DROP COLUMN IF EXISTS selfie_4 CASCADE;",
-                    reverse_sql="ALTER TABLE users_kycverification ADD COLUMN selfie_4 varchar(100) NULL;",
+                    sql=(
+                        "ALTER TABLE users_kycverification "
+                        "DROP COLUMN IF EXISTS selfie_4 CASCADE;"
+                    ),
+                    reverse_sql=(
+                        "ALTER TABLE users_kycverification "
+                        "ADD COLUMN selfie_4 varchar(100) NULL;"
+                    ),
                 ),
             ],
             state_operations=[
@@ -92,7 +116,9 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "image",
-                    models.ImageField(upload_to=apps.users.models.kyc_selfie_file_path),
+                    models.ImageField(
+                        upload_to=apps.users.models.kyc_selfie_file_path
+                    ),
                 ),
                 ("order", models.PositiveSmallIntegerField(default=0)),
                 (
