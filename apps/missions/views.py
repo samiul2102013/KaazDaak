@@ -44,6 +44,7 @@ _kasbir_card_response = inline_serializer(
 class MissionCreateView(APIView):
     permission_classes = [IsAuthenticated, IsHirer]
     parser_classes = [MultiPartParser, FormParser]
+    tags = ["Missions"]
     request_serializer = MissionCreateSerializer
     response_serializer = {
         status.HTTP_201_CREATED: inline_serializer(
@@ -81,6 +82,7 @@ class MissionCreateView(APIView):
 
 class HirerRecentTasksView(APIView):
     permission_classes = [IsAuthenticated, IsHirer]
+    tags = ["Hirer"]
     response_serializer = inline_serializer(
         "HirerRecentTaskResponse",
         many=True,
@@ -121,6 +123,7 @@ class HirerRecentTasksView(APIView):
 
 class MissionListView(APIView):
     permission_classes = [IsAuthenticated]
+    tags = ["Missions"]
     response_serializer = MissionListSerializer
     response_many = True
 
@@ -151,6 +154,7 @@ class MissionListView(APIView):
 
 class MissionDetailView(APIView):
     permission_classes = [IsAuthenticated]
+    tags = ["Missions"]
     response_serializer = MissionSerializer
 
     def get(self, request, pk):
@@ -167,6 +171,7 @@ class MissionDetailView(APIView):
 
 class MissionBidView(APIView):
     permission_classes = [IsAuthenticated, IsKaazbir]
+    tags = ["Missions"]
     request_serializer = MissionBidSerializer
     response_serializer = inline_serializer(
         "MissionBidResponse",
@@ -217,6 +222,7 @@ class MissionBidView(APIView):
 
 class MissionConfirmView(APIView):
     permission_classes = [IsAuthenticated, IsHirer]
+    tags = ["Missions"]
     request_serializer = MissionConfirmSerializer
     response_serializer = inline_serializer(
         "MissionConfirmResponse",
@@ -269,6 +275,7 @@ class MissionConfirmView(APIView):
 
 class ChatOfferView(APIView):
     permission_classes = [IsAuthenticated, IsHirer]
+    tags = ["Missions"]
     request_serializer = inline_serializer(
         "ChatOfferRequest",
         fields={
@@ -340,6 +347,7 @@ class ChatOfferView(APIView):
 
 class HirerActivityView(APIView):
     permission_classes = [IsAuthenticated, IsHirer]
+    tags = ["Hirer"]
     response_serializer = HirerActivitySerializer
     response_many = True
 
@@ -372,6 +380,7 @@ class HirerActivityView(APIView):
 
 class CategoryKasbirsView(APIView):
     permission_classes = [IsAuthenticated]
+    tags = ["Kaazbir"]
     response_serializer = inline_serializer(
         "CategoryKasbirResponse",
         many=True,
@@ -446,6 +455,7 @@ class CategoryKasbirsView(APIView):
 
 class KasbirListView(APIView):
     permission_classes = [IsAuthenticated]
+    tags = ["Kaazbir"]
     response_serializer = _kasbir_card_response
 
     def get(self, request):
@@ -505,6 +515,7 @@ class KasbirListView(APIView):
 
 class KasbirAvailableView(APIView):
     permission_classes = [IsAuthenticated]
+    tags = ["Kaazbir"]
     response_serializer = _kasbir_card_response
 
     def get(self, request):
@@ -569,6 +580,7 @@ class KasbirAvailableView(APIView):
 
 class KasbirSearchView(APIView):
     permission_classes = [IsAuthenticated]
+    tags = ["Kaazbir"]
     response_serializer = _kasbir_card_response
 
     def get(self, request):
@@ -645,6 +657,7 @@ class KasbirSearchView(APIView):
 
 class KaazbirActivityListView(APIView):
     permission_classes = [IsAuthenticated, IsKaazbir]
+    tags = ["Kaazbir"]
     response_serializer = KaazbirActivitySerializer
     response_many = True
 
@@ -678,6 +691,7 @@ class KaazbirActivityListView(APIView):
 
 class KaazbirActivityDetailView(APIView):
     permission_classes = [IsAuthenticated, IsKaazbir]
+    tags = ["Kaazbir"]
     response_serializer = KaazbirActivityDetailSerializer
 
     def get(self, request, pk):
@@ -703,6 +717,7 @@ class KaazbirActivityDetailView(APIView):
 
 class KaazbirEarningsView(APIView):
     permission_classes = [IsAuthenticated, IsKaazbir]
+    tags = ["Kaazbir"]
     response_serializer = inline_serializer(
         "KaazbirEarningsResponse",
         fields={
@@ -777,6 +792,7 @@ class KaazbirEarningsView(APIView):
 
 class KaazbirAcceptanceRatioView(APIView):
     permission_classes = [IsAuthenticated, IsKaazbir]
+    tags = ["Kaazbir"]
     response_serializer = inline_serializer(
         "AcceptanceRatioResponse",
         fields={
@@ -812,6 +828,7 @@ class KaazbirAcceptanceRatioView(APIView):
 
 class KaazbirReviewAverageView(APIView):
     permission_classes = [IsAuthenticated, IsKaazbir]
+    tags = ["Kaazbir"]
     response_serializer = inline_serializer(
         "ReviewAverageResponse",
         fields={
@@ -835,6 +852,7 @@ class KaazbirReviewAverageView(APIView):
 
 class KaazbirReviewListView(APIView):
     permission_classes = [IsAuthenticated, IsKaazbir]
+    tags = ["Kaazbir"]
     response_serializer = ReviewSerializer
     response_many = True
 
@@ -853,6 +871,7 @@ class KaazbirReviewListView(APIView):
 
 class TaskMineView(APIView):
     permission_classes = [IsAuthenticated, IsHirer]
+    tags = ["Hirer"]
     response_serializer = inline_serializer(
         "TaskMineResponse",
         many=True,

@@ -1,5 +1,47 @@
 from drf_spectacular.openapi import AutoSchema
 
+API_TAGS = [
+    {
+        "name": "Auth",
+        "description": (
+            "Authentication: registration (hirer/kaazbir), email verification, "
+            "OTP resend, login, token refresh, logout and current user."
+        ),
+    },
+    {
+        "name": "Catalog",
+        "description": (
+            "Catalog: browse services, campaigns/offers, sub-service custom "
+            "fields and manage the kaazbir's own service list."
+        ),
+    },
+    {
+        "name": "Kaazbir",
+        "description": (
+            "KaazBir (worker) side: profile, KYC submission, kasbir discovery "
+            "and search, activities, earnings, stats and reviews."
+        ),
+    },
+    {
+        "name": "Hirer",
+        "description": (
+            "Hirer (employer) side: profile/basic info, media, profile picture, "
+            "notification settings, change password and task overview."
+        ),
+    },
+    {
+        "name": "Missions",
+        "description": (
+            "Missions: create, browse the feed, view detail, bid, confirm and "
+            "send/accept direct offers."
+        ),
+    },
+    {
+        "name": "System",
+        "description": "Infrastructure endpoints such as health checks.",
+    },
+]
+
 
 class EnvelopeAutoSchema(AutoSchema):
     """Reads optional ``request_serializer``/``response_serializer`` class
@@ -49,6 +91,12 @@ class EnvelopeAutoSchema(AutoSchema):
         if getattr(self.view, "schema_skip_auth", False):
             return []
         return super().get_auth()
+
+    def get_tags(self):
+        tags = self._lookup("tags")
+        if tags is not None:
+            return tags
+        return super().get_tags()
 
 
 def _success_envelope(schema):
@@ -106,4 +154,6 @@ def wrap_envelope_responses(result, generator, request, public):
                 operation.pop("security", None)
                 continue
             _apply_envelope(operation.get("responses", {}))
+
+    result["tags"] = list(API_TAGS)
     return result

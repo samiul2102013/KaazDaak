@@ -18,6 +18,7 @@ from apps.users.views import KaazbirProfileView
 
 
 @extend_schema(
+    tags=["System"],
     responses={
         200: inline_serializer(
             "HealthResponse",
@@ -26,7 +27,7 @@ from apps.users.views import KaazbirProfileView
                 "message": serializers.CharField(),
             },
         )
-    }
+    },
 )
 @api_view(["GET"])
 @permission_classes([AllowAny])

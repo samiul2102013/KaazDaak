@@ -36,6 +36,7 @@ def get_or_create_hirer_profile(user):
 
 class HirerBasicInfoView(APIView):
     permission_classes = [IsAuthenticated, IsHirer]
+    tags = ["Hirer"]
     request_serializer = HirerBasicInfoSerializer
     response_serializer = inline_serializer(
         "HirerBasicInfoResponse",
@@ -72,6 +73,7 @@ class HirerBasicInfoView(APIView):
 class HirerMediaView(APIView):
     permission_classes = [IsAuthenticated, IsHirer]
     parser_classes = [MultiPartParser, FormParser]
+    tags = ["Hirer"]
     request_serializer = HirerMediaUploadSerializer
     response_serializer = inline_serializer(
         "HirerMediaResponse",
@@ -127,6 +129,7 @@ class HirerMediaView(APIView):
 class HirerProfilePictureView(APIView):
     permission_classes = [IsAuthenticated, IsHirer]
     parser_classes = [MultiPartParser, FormParser]
+    tags = ["Hirer"]
     request_serializer = HirerProfilePictureSerializer
     response_serializer = inline_serializer(
         "HirerProfilePictureResponse",
@@ -153,6 +156,7 @@ class HirerProfilePictureView(APIView):
 
 class HirerNotificationSettingsView(APIView):
     permission_classes = [IsAuthenticated, IsHirer]
+    tags = ["Hirer"]
     request_serializer = NotificationSettingsSerializer
     response_serializer = NotificationSettingsSerializer
 
@@ -171,6 +175,7 @@ class HirerNotificationSettingsView(APIView):
 
 class HirerChangePasswordView(APIView):
     permission_classes = [IsAuthenticated, IsHirer]
+    tags = ["Hirer"]
     request_serializer = ChangePasswordSerializer
     response_serializer = inline_serializer("PasswordChangeResponse", fields={})
 

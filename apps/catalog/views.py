@@ -19,6 +19,7 @@ from .services import KaazbirServiceService
 
 
 class ServiceListView(APIView):
+    tags = ["Catalog"]
     response_serializer = ServiceSerializer
     response_many = True
 
@@ -32,6 +33,7 @@ class ServiceListView(APIView):
 
 
 class ServiceDetailView(APIView):
+    tags = ["Catalog"]
     response_serializer = ServiceSerializer
 
     def get(self, request, pk):
@@ -44,6 +46,7 @@ class ServiceDetailView(APIView):
 
 class CampaignListView(APIView):
     schema_skip_auth = True
+    tags = ["Catalog"]
     response_serializer = CampaignSerializer
     response_many = True
 
@@ -60,6 +63,7 @@ class CampaignListView(APIView):
 
 class KaazbirServiceUpdateView(APIView):
     permission_classes = [IsKaazbir]
+    tags = ["Catalog"]
     request_serializer = KaazbirServiceUpdateSerializer
     response_serializer = inline_serializer(
         "KaazbirServiceUpdateResponse",
@@ -87,6 +91,7 @@ class KaazbirServiceUpdateView(APIView):
 
 class KaazbirServiceMineView(APIView):
     permission_classes = [IsKaazbir]
+    tags = ["Catalog"]
     response_serializer = inline_serializer(
         "KasbirServicesResponse",
         fields={"services": KasbirServiceSerializer(many=True)},
@@ -110,6 +115,7 @@ class KaazbirServiceMineView(APIView):
 class SubserviceCustomFieldsView(APIView):
     permission_classes = [AllowAny]
     schema_skip_auth = True
+    tags = ["Catalog"]
     response_serializer = SubserviceCustomFieldSerializer
     response_many = True
 

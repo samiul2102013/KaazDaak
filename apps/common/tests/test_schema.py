@@ -83,3 +83,19 @@ def test_schema_endpoints_respond(api_client):
     assert api_client.get("/api/schema/").status_code == 200
     assert api_client.get("/api/docs/").status_code == 200
     assert api_client.get("/api/docs/redoc/").status_code == 200
+
+
+def test_operations_are_grouped_by_feature_tags(schema):
+    assert schema["paths"]["/api/v1/auth/login/"]["post"]["tags"] == ["Auth"]
+    assert schema["paths"]["/api/v1/services/"]["get"]["tags"] == ["Catalog"]
+    assert schema["paths"]["/api/v1/kasbir/search/"]["get"]["tags"] == ["Kaazbir"]
+    assert schema["paths"]["/api/v1/kaazbir/activities/"]["get"]["tags"] == ["Kaazbir"]
+    assert schema["paths"]["/api/v1/hirer/profile/media/"]["post"]["tags"] == ["Hirer"]
+    assert schema["paths"]["/api/v1/missions/feed/"]["get"]["tags"] == ["Missions"]
+    assert schema["paths"]["/api/health/"]["get"]["tags"] == ["System"]
+
+
+def test_tag_metadata_is_declared_in_order(schema):
+    tag_names = [tag["name"] for tag in schema["tags"]]
+    assert tag_names == ["Auth", "Catalog", "Kaazbir", "Hirer", "Missions", "System"]
+    assert all(tag["description"] for tag in schema["tags"])
