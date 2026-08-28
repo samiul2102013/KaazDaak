@@ -1,11 +1,13 @@
 import logging
 
 from django.conf import settings
-from rest_framework import status
+from drf_spectacular.utils import inline_serializer
+from rest_framework import serializers, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
+from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView as SimpleJWTTokenRefreshView
 
@@ -32,6 +34,18 @@ logger = logging.getLogger(__name__)
 class HirerRegisterView(APIView):
     permission_classes = [AllowAny]
     throttle_scope = None
+    schema_skip_auth = True
+    request_serializer = HirerRegisterSerializer
+    response_serializer = {
+        status.HTTP_201_CREATED: inline_serializer(
+            "HirerRegisterResponse",
+            fields={
+                "user_id": serializers.UUIDField(),
+                "username": serializers.CharField(),
+                "email": serializers.EmailField(),
+            },
+        )
+    }
 
     def post(self, request):
         serializer = HirerRegisterSerializer(data=request.data)
@@ -51,6 +65,19 @@ class HirerRegisterView(APIView):
 class KaazbirRegisterView(APIView):
     permission_classes = [AllowAny]
     throttle_scope = None
+    schema_skip_auth = True
+    request_serializer = KaazbirRegisterSerializer
+    response_serializer = {
+        status.HTTP_201_CREATED: inline_serializer(
+            "KaazbirRegisterResponse",
+            fields={
+                "user_id": serializers.UUIDField(),
+                "username": serializers.CharField(),
+                "email": serializers.EmailField(),
+                "phone_number": serializers.CharField(allow_null=True),
+            },
+        )
+    }
 
     def post(self, request):
         serializer = KaazbirRegisterSerializer(data=request.data)
@@ -71,6 +98,15 @@ class KaazbirRegisterView(APIView):
 class VerifyEmailView(APIView):
     permission_classes = [AllowAny]
     throttle_scope = None
+    schema_skip_auth = True
+    request_serializer = VerifyEmailSerializer
+    response_serializer = inline_serializer(
+        "VerifyEmailResponse",
+        fields={
+            "access": serializers.CharField(),
+            "refresh": serializers.CharField(),
+        },
+    )
 
     def post(self, request):
         serializer = VerifyEmailSerializer(data=request.data)
@@ -130,6 +166,9 @@ class ResendOTPView(APIView):
     permission_classes = [AllowAny]
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = "otp_resend"
+    schema_skip_auth = True
+    request_serializer = ResendOTPSerializer
+    response_serializer = inline_serializer("ResendOTPResponse", fields={})
 
     def post(self, request):
         serializer = ResendOTPSerializer(data=request.data)
@@ -155,6 +194,16 @@ class LoginView(APIView):
     permission_classes = [AllowAny]
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = "login"
+    schema_skip_auth = True
+    request_serializer = LoginSerializer
+    response_serializer = inline_serializer(
+        "LoginResponse",
+        fields={
+            "access": serializers.CharField(),
+            "refresh": serializers.CharField(),
+            "user": UserSerializer(),
+        },
+    )
 
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
@@ -201,6 +250,11 @@ class LoginView(APIView):
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
+    request_serializer = inline_serializer(
+        "LogoutRequest",
+        fields={"refresh": serializers.CharField(required=False)},
+    )
+    response_serializer = inline_serializer("LogoutResponse", fields={})
 
     def post(self, request):
         try:
@@ -215,6 +269,7 @@ class LogoutView(APIView):
 
 class CurrentUserView(APIView):
     permission_classes = [IsAuthenticated]
+    response_serializer = UserSerializer
 
     def get(self, request):
         serializer = UserSerializer(request.user)
@@ -223,6 +278,17 @@ class CurrentUserView(APIView):
 
 class KYCSubmitView(APIView):
     permission_classes = [IsAuthenticated, IsKaazbir]
+    request_serializer = KYCSubmitSerializer
+    response_serializer = {
+        status.HTTP_201_CREATED: inline_serializer(
+            "KYCSubmitResponse",
+            fields={
+                "id": serializers.UUIDField(),
+                "document_type": serializers.CharField(),
+                "status": serializers.CharField(),
+            },
+        )
+    }
 
     def post(self, request):
         serializer = KYCSubmitSerializer(
@@ -244,6 +310,15 @@ class KYCSubmitView(APIView):
 
 class KaazbirProfileView(APIView):
     permission_classes = [IsAuthenticated, IsKaazbir]
+    response_serializer_get = KaazbirProfileDetailSerializer
+    request_serializer_post = KaazbirProfileUpdateSerializer
+    response_serializer_post = inline_serializer(
+        "KaazbirProfileUpdateResponse",
+        fields={
+            "id": serializers.UUIDField(),
+            "is_profile_complete": serializers.BooleanField(),
+        },
+    )
 
     def get(self, request):
         profile = KaazbirProfileService.get_or_create_profile(request.user)
@@ -271,6 +346,16 @@ class KaazbirProfileView(APIView):
 
 
 class TokenRefreshView(SimpleJWTTokenRefreshView):
+    schema_skip_auth = True
+    request_serializer = TokenRefreshSerializer
+    response_serializer = inline_serializer(
+        "TokenRefreshResponse",
+        fields={
+            "access": serializers.CharField(),
+            "refresh": serializers.CharField(),
+        },
+    )
+
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
         if response.status_code == 200:

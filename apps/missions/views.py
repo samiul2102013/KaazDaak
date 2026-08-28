@@ -1,7 +1,8 @@
 import logging
 
 from django.db import models, transaction
-from rest_framework import status
+from drf_spectacular.utils import inline_serializer
+from rest_framework import serializers, status
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
@@ -25,10 +26,37 @@ from .serializers import (
 
 logger = logging.getLogger(__name__)
 
+_kasbir_card_response = inline_serializer(
+    "KasbirCardResponse",
+    many=True,
+    fields={
+        "kasbir_id": serializers.UUIDField(),
+        "name": serializers.CharField(),
+        "profile_picture": serializers.CharField(allow_null=True),
+        "hourly_rate": serializers.FloatField(allow_null=True),
+        "completed_jobs": serializers.IntegerField(),
+        "bio": serializers.CharField(allow_null=True),
+        "rating": serializers.FloatField(allow_null=True),
+    },
+)
+
 
 class MissionCreateView(APIView):
     permission_classes = [IsAuthenticated, IsHirer]
     parser_classes = [MultiPartParser, FormParser]
+    request_serializer = MissionCreateSerializer
+    response_serializer = {
+        status.HTTP_201_CREATED: inline_serializer(
+            "MissionCreateResponse",
+            fields={
+                "id": serializers.UUIDField(),
+                "title": serializers.CharField(),
+                "status": serializers.CharField(),
+                "created_at": serializers.DateTimeField(),
+                "mission": MissionSerializer(),
+            },
+        )
+    }
 
     def post(self, request):
         serializer = MissionCreateSerializer(
@@ -53,6 +81,18 @@ class MissionCreateView(APIView):
 
 class HirerRecentTasksView(APIView):
     permission_classes = [IsAuthenticated, IsHirer]
+    response_serializer = inline_serializer(
+        "HirerRecentTaskResponse",
+        many=True,
+        fields={
+            "mission_id": serializers.UUIDField(),
+            "title": serializers.CharField(),
+            "subtitle": serializers.CharField(allow_null=True),
+            "amount": serializers.FloatField(),
+            "posted_time_ago": serializers.CharField(),
+            "total_applications": serializers.IntegerField(),
+        },
+    )
 
     def get(self, request):
         missions = (
@@ -81,6 +121,8 @@ class HirerRecentTasksView(APIView):
 
 class MissionListView(APIView):
     permission_classes = [IsAuthenticated]
+    response_serializer = MissionListSerializer
+    response_many = True
 
     def get(self, request):
         queryset = (
@@ -109,6 +151,7 @@ class MissionListView(APIView):
 
 class MissionDetailView(APIView):
     permission_classes = [IsAuthenticated]
+    response_serializer = MissionSerializer
 
     def get(self, request, pk):
         mission = (
@@ -124,6 +167,14 @@ class MissionDetailView(APIView):
 
 class MissionBidView(APIView):
     permission_classes = [IsAuthenticated, IsKaazbir]
+    request_serializer = MissionBidSerializer
+    response_serializer = inline_serializer(
+        "MissionBidResponse",
+        fields={
+            "mission_id": serializers.UUIDField(),
+            "status": serializers.CharField(),
+        },
+    )
 
     @transaction.atomic
     def post(self, request, pk):
@@ -166,6 +217,16 @@ class MissionBidView(APIView):
 
 class MissionConfirmView(APIView):
     permission_classes = [IsAuthenticated, IsHirer]
+    request_serializer = MissionConfirmSerializer
+    response_serializer = inline_serializer(
+        "MissionConfirmResponse",
+        fields={
+            "mission_id": serializers.UUIDField(),
+            "status": serializers.CharField(),
+            "final_price": serializers.FloatField(allow_null=True),
+            "payment_status": serializers.CharField(),
+        },
+    )
 
     @transaction.atomic
     def post(self, request, pk):
@@ -208,6 +269,27 @@ class MissionConfirmView(APIView):
 
 class ChatOfferView(APIView):
     permission_classes = [IsAuthenticated, IsHirer]
+    request_serializer = inline_serializer(
+        "ChatOfferRequest",
+        fields={
+            "order_title": serializers.CharField(),
+            "description": serializers.CharField(required=False, allow_blank=True),
+            "budget": serializers.DecimalField(
+                max_digits=10, decimal_places=2, required=False, allow_null=True
+            ),
+            "location": serializers.CharField(required=False, allow_blank=True),
+            "work_location": serializers.CharField(required=False, allow_blank=True),
+        },
+    )
+    response_serializer = {
+        status.HTTP_201_CREATED: inline_serializer(
+            "ChatOfferResponse",
+            fields={
+                "mission_id": serializers.UUIDField(),
+                "status": serializers.CharField(),
+            },
+        )
+    }
 
     @transaction.atomic
     def post(self, request, pk):
@@ -258,6 +340,8 @@ class ChatOfferView(APIView):
 
 class HirerActivityView(APIView):
     permission_classes = [IsAuthenticated, IsHirer]
+    response_serializer = HirerActivitySerializer
+    response_many = True
 
     def get(self, request):
         status_filter = request.query_params.get("status")
@@ -288,6 +372,20 @@ class HirerActivityView(APIView):
 
 class CategoryKasbirsView(APIView):
     permission_classes = [IsAuthenticated]
+    response_serializer = inline_serializer(
+        "CategoryKasbirResponse",
+        many=True,
+        fields={
+            "kaazbir_id": serializers.UUIDField(),
+            "name": serializers.CharField(),
+            "profile_pic": serializers.CharField(allow_null=True),
+            "rating_avg": serializers.FloatField(allow_null=True),
+            "sub_categories": serializers.ListField(child=serializers.CharField()),
+            "hourly_rate": serializers.FloatField(allow_null=True),
+            "completed_jobs": serializers.IntegerField(),
+            "bio": serializers.CharField(allow_null=True),
+        },
+    )
 
     def get(self, request, pk):
         from apps.users.models import User
@@ -348,6 +446,7 @@ class CategoryKasbirsView(APIView):
 
 class KasbirListView(APIView):
     permission_classes = [IsAuthenticated]
+    response_serializer = _kasbir_card_response
 
     def get(self, request):
         from apps.users.models import User
@@ -406,6 +505,7 @@ class KasbirListView(APIView):
 
 class KasbirAvailableView(APIView):
     permission_classes = [IsAuthenticated]
+    response_serializer = _kasbir_card_response
 
     def get(self, request):
         from apps.users.models import User
@@ -469,6 +569,7 @@ class KasbirAvailableView(APIView):
 
 class KasbirSearchView(APIView):
     permission_classes = [IsAuthenticated]
+    response_serializer = _kasbir_card_response
 
     def get(self, request):
         from apps.users.models import User
@@ -544,6 +645,8 @@ class KasbirSearchView(APIView):
 
 class KaazbirActivityListView(APIView):
     permission_classes = [IsAuthenticated, IsKaazbir]
+    response_serializer = KaazbirActivitySerializer
+    response_many = True
 
     def get(self, request):
         status_filter = request.query_params.get("status")
@@ -575,6 +678,7 @@ class KaazbirActivityListView(APIView):
 
 class KaazbirActivityDetailView(APIView):
     permission_classes = [IsAuthenticated, IsKaazbir]
+    response_serializer = KaazbirActivityDetailSerializer
 
     def get(self, request, pk):
         mission = (
@@ -599,6 +703,22 @@ class KaazbirActivityDetailView(APIView):
 
 class KaazbirEarningsView(APIView):
     permission_classes = [IsAuthenticated, IsKaazbir]
+    response_serializer = inline_serializer(
+        "KaazbirEarningsResponse",
+        fields={
+            "range": serializers.CharField(),
+            "data": serializers.ListField(
+                child=inline_serializer(
+                    "EarningBucketResponse",
+                    fields={
+                        "day": serializers.CharField(required=False),
+                        "week": serializers.CharField(required=False),
+                        "amount": serializers.FloatField(),
+                    },
+                )
+            ),
+        },
+    )
 
     def get(self, request):
         from django.db.models import Sum
@@ -657,6 +777,14 @@ class KaazbirEarningsView(APIView):
 
 class KaazbirAcceptanceRatioView(APIView):
     permission_classes = [IsAuthenticated, IsKaazbir]
+    response_serializer = inline_serializer(
+        "AcceptanceRatioResponse",
+        fields={
+            "interested": serializers.IntegerField(),
+            "accepted": serializers.IntegerField(),
+            "declined": serializers.IntegerField(),
+        },
+    )
 
     def get(self, request):
         interested = Mission.objects.filter(
@@ -684,6 +812,13 @@ class KaazbirAcceptanceRatioView(APIView):
 
 class KaazbirReviewAverageView(APIView):
     permission_classes = [IsAuthenticated, IsKaazbir]
+    response_serializer = inline_serializer(
+        "ReviewAverageResponse",
+        fields={
+            "average_rating": serializers.FloatField(),
+            "total_reviews": serializers.IntegerField(),
+        },
+    )
 
     def get(self, request):
         reviews = Review.objects.filter(kaazbir=request.user)
@@ -700,6 +835,8 @@ class KaazbirReviewAverageView(APIView):
 
 class KaazbirReviewListView(APIView):
     permission_classes = [IsAuthenticated, IsKaazbir]
+    response_serializer = ReviewSerializer
+    response_many = True
 
     def get(self, request):
         reviews = (
@@ -716,6 +853,18 @@ class KaazbirReviewListView(APIView):
 
 class TaskMineView(APIView):
     permission_classes = [IsAuthenticated, IsHirer]
+    response_serializer = inline_serializer(
+        "TaskMineResponse",
+        many=True,
+        fields={
+            "id": serializers.UUIDField(),
+            "title": serializers.CharField(),
+            "budget": serializers.FloatField(allow_null=True),
+            "status": serializers.CharField(),
+            "photos": serializers.ListField(child=serializers.CharField()),
+            "created_at": serializers.DateTimeField(),
+        },
+    )
 
     def get(self, request):
         missions = (

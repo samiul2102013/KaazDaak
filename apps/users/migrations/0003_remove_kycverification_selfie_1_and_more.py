@@ -8,6 +8,37 @@ from django.db import migrations, models
 import apps.users.models
 
 
+def drop_selfie_columns_if_present(apps, schema_editor):
+    """Drop legacy inline selfie columns only when they exist (DB-agnostic)."""
+    connection = schema_editor.connection
+    table_name = "users_kycverification"
+    table_names = connection.introspection.table_names()
+    if table_name not in table_names:
+        return
+    cursor = connection.cursor()
+    existing = {
+        column.name
+        for column in connection.introspection.get_table_description(cursor, table_name)
+    }
+    for column in ("selfie_1", "selfie_2", "selfie_3", "selfie_4"):
+        if column in existing:
+            schema_editor.execute(
+                "ALTER TABLE {} DROP COLUMN {}".format(table_name, column)
+            )
+
+
+def add_selfie_columns(apps, schema_editor):
+    """Reverse migration: re-add legacy selfie columns."""
+    connection = schema_editor.connection
+    table_name = "users_kycverification"
+    if table_name not in connection.introspection.table_names():
+        return
+    for column in ("selfie_1", "selfie_2", "selfie_3", "selfie_4"):
+        schema_editor.execute(
+            "ALTER TABLE {} ADD COLUMN {} varchar(100) NULL".format(table_name, column)
+        )
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -17,45 +48,9 @@ class Migration(migrations.Migration):
     operations = [
         migrations.SeparateDatabaseAndState(
             database_operations=[
-                migrations.RunSQL(
-                    sql=(
-                        "ALTER TABLE users_kycverification "
-                        "DROP COLUMN IF EXISTS selfie_1 CASCADE;"
-                    ),
-                    reverse_sql=(
-                        "ALTER TABLE users_kycverification "
-                        "ADD COLUMN selfie_1 varchar(100) NULL;"
-                    ),
-                ),
-                migrations.RunSQL(
-                    sql=(
-                        "ALTER TABLE users_kycverification "
-                        "DROP COLUMN IF EXISTS selfie_2 CASCADE;"
-                    ),
-                    reverse_sql=(
-                        "ALTER TABLE users_kycverification "
-                        "ADD COLUMN selfie_2 varchar(100) NULL;"
-                    ),
-                ),
-                migrations.RunSQL(
-                    sql=(
-                        "ALTER TABLE users_kycverification "
-                        "DROP COLUMN IF EXISTS selfie_3 CASCADE;"
-                    ),
-                    reverse_sql=(
-                        "ALTER TABLE users_kycverification "
-                        "ADD COLUMN selfie_3 varchar(100) NULL;"
-                    ),
-                ),
-                migrations.RunSQL(
-                    sql=(
-                        "ALTER TABLE users_kycverification "
-                        "DROP COLUMN IF EXISTS selfie_4 CASCADE;"
-                    ),
-                    reverse_sql=(
-                        "ALTER TABLE users_kycverification "
-                        "ADD COLUMN selfie_4 varchar(100) NULL;"
-                    ),
+                migrations.RunPython(
+                    drop_selfie_columns_if_present,
+                    add_selfie_columns,
                 ),
             ],
             state_operations=[
