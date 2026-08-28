@@ -37,6 +37,7 @@ class HirerBasicInfoView(APIView):
         user.email = serializer.validated_data["email"]
         if serializer.validated_data.get("phone_number"):
             from apps.users.validators import normalize_bd_phone
+
             user.phone_number = normalize_bd_phone(
                 serializer.validated_data["phone_number"]
             )
@@ -71,8 +72,11 @@ class HirerMediaView(APIView):
             )
             data["certificate"] = {
                 "name": cert.name,
-                "picture": request.build_absolute_uri(cert.picture.url)
-                if cert.picture else None,
+                "picture": (
+                    request.build_absolute_uri(cert.picture.url)
+                    if cert.picture
+                    else None
+                ),
             }
 
         if serializer.validated_data.get("license_name"):
@@ -84,8 +88,9 @@ class HirerMediaView(APIView):
             )
             data["license"] = {
                 "name": lic.name,
-                "picture": request.build_absolute_uri(lic.picture.url)
-                if lic.picture else None,
+                "picture": (
+                    request.build_absolute_uri(lic.picture.url) if lic.picture else None
+                ),
             }
 
         return success_response(
@@ -106,8 +111,11 @@ class HirerProfilePictureView(APIView):
         profile.save(update_fields=["profile_picture"])
         return success_response(
             data={
-                "picture": request.build_absolute_uri(profile.profile_picture.url)
-                if profile.profile_picture else None,
+                "picture": (
+                    request.build_absolute_uri(profile.profile_picture.url)
+                    if profile.profile_picture
+                    else None
+                ),
             },
             message="Profile picture updated successfully.",
         )
@@ -146,6 +154,4 @@ class HirerChangePasswordView(APIView):
 
         user.set_password(serializer.validated_data["new_password"])
         user.save(update_fields=["password"])
-        return success_response(
-            message="Password changed successfully."
-        )
+        return success_response(message="Password changed successfully.")

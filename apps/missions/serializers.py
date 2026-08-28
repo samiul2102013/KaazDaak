@@ -130,7 +130,15 @@ class MissionSerializer(serializers.ModelSerializer):
 class MissionApplicationSerializer(serializers.ModelSerializer):
     class Meta:
         model = MissionApplication
-        fields = ["id", "mission", "kaazbir", "action", "budget", "message", "created_at"]
+        fields = [
+            "id",
+            "mission",
+            "kaazbir",
+            "action",
+            "budget",
+            "message",
+            "created_at",
+        ]
         read_only_fields = ["id", "mission", "kaazbir", "created_at"]
 
 
@@ -161,9 +169,7 @@ class MissionConfirmSerializer(serializers.Serializer):
 
 class HirerActivitySerializer(serializers.ModelSerializer):
     mission_id = serializers.UUIDField(source="id")
-    amount = serializers.DecimalField(
-        source="budget", max_digits=10, decimal_places=2
-    )
+    amount = serializers.DecimalField(source="budget", max_digits=10, decimal_places=2)
     kasbir_name = serializers.SerializerMethodField()
     kasbir_rating = serializers.SerializerMethodField()
     display_status = serializers.SerializerMethodField()
@@ -188,9 +194,7 @@ class HirerActivitySerializer(serializers.ModelSerializer):
         if obj.kaazbir:
             reviews = obj.kaazbir.reviews_received.all()
             if reviews:
-                return round(
-                    sum(r.rating for r in reviews) / reviews.count(), 1
-                )
+                return round(sum(r.rating for r in reviews) / reviews.count(), 1)
         return None
 
     def get_display_status(self, obj):

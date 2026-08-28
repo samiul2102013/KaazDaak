@@ -107,9 +107,7 @@ class MissionApplication(TimestampedModel):
         related_name="mission_applications",
     )
     action = models.CharField(max_length=10, choices=Action.choices)
-    budget = models.DecimalField(
-        max_digits=10, decimal_places=2, null=True, blank=True
-    )
+    budget = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     message = models.TextField(blank=True)
 
     class Meta:

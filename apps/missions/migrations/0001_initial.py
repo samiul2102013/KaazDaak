@@ -12,100 +12,294 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('catalog', '0002_customfield_subservicecustomfield'),
+        ("catalog", "0002_customfield_subservicecustomfield"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Mission',
+            name="Mission",
             fields=[
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('title', models.CharField(max_length=255)),
-                ('subtitle', models.CharField(blank=True, max_length=255)),
-                ('description', models.TextField(blank=True)),
-                ('budget', models.DecimalField(blank=True, decimal_places=2, max_digits=10, null=True)),
-                ('kasbir_bid_price', models.DecimalField(blank=True, decimal_places=2, max_digits=10, null=True)),
-                ('final_price', models.DecimalField(blank=True, decimal_places=2, max_digits=10, null=True)),
-                ('per_hour_rate', models.DecimalField(blank=True, decimal_places=2, max_digits=10, null=True)),
-                ('pickup_location', models.CharField(blank=True, max_length=255)),
-                ('delivery_location', models.CharField(blank=True, max_length=255)),
-                ('location', models.CharField(blank=True, max_length=255)),
-                ('origin', models.CharField(choices=[('hirer_posted', 'Hirer Posted'), ('hirer_direct', 'Hirer Direct Offer')], max_length=20)),
-                ('status', models.CharField(choices=[('open', 'Open'), ('interested', 'Interested'), ('offer_sent', 'Offer Sent'), ('accepted', 'Accepted'), ('rejected', 'Rejected'), ('in_progress', 'In Progress'), ('completed', 'Completed'), ('cancelled', 'Cancelled')], default='open', max_length=20)),
-                ('payment_status', models.CharField(choices=[('pending', 'Pending'), ('held', 'Held'), ('released', 'Released'), ('failed', 'Failed')], default='pending', max_length=20)),
-                ('delivery_time', models.DateTimeField(blank=True, null=True)),
-                ('custom_fields_data', models.JSONField(blank=True, default=dict)),
-                ('hirer', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='missions_posted', to=settings.AUTH_USER_MODEL)),
-                ('kaazbir', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='missions_assigned', to=settings.AUTH_USER_MODEL)),
-                ('service', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, to='catalog.service')),
-                ('subservice', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, to='catalog.subservice')),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("title", models.CharField(max_length=255)),
+                ("subtitle", models.CharField(blank=True, max_length=255)),
+                ("description", models.TextField(blank=True)),
+                (
+                    "budget",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=10, null=True
+                    ),
+                ),
+                (
+                    "kasbir_bid_price",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=10, null=True
+                    ),
+                ),
+                (
+                    "final_price",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=10, null=True
+                    ),
+                ),
+                (
+                    "per_hour_rate",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=10, null=True
+                    ),
+                ),
+                ("pickup_location", models.CharField(blank=True, max_length=255)),
+                ("delivery_location", models.CharField(blank=True, max_length=255)),
+                ("location", models.CharField(blank=True, max_length=255)),
+                (
+                    "origin",
+                    models.CharField(
+                        choices=[
+                            ("hirer_posted", "Hirer Posted"),
+                            ("hirer_direct", "Hirer Direct Offer"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("open", "Open"),
+                            ("interested", "Interested"),
+                            ("offer_sent", "Offer Sent"),
+                            ("accepted", "Accepted"),
+                            ("rejected", "Rejected"),
+                            ("in_progress", "In Progress"),
+                            ("completed", "Completed"),
+                            ("cancelled", "Cancelled"),
+                        ],
+                        default="open",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "payment_status",
+                    models.CharField(
+                        choices=[
+                            ("pending", "Pending"),
+                            ("held", "Held"),
+                            ("released", "Released"),
+                            ("failed", "Failed"),
+                        ],
+                        default="pending",
+                        max_length=20,
+                    ),
+                ),
+                ("delivery_time", models.DateTimeField(blank=True, null=True)),
+                ("custom_fields_data", models.JSONField(blank=True, default=dict)),
+                (
+                    "hirer",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="missions_posted",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "kaazbir",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="missions_assigned",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "service",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.PROTECT,
+                        to="catalog.service",
+                    ),
+                ),
+                (
+                    "subservice",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.PROTECT,
+                        to="catalog.subservice",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-created_at'],
+                "ordering": ["-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='Earning',
+            name="Earning",
             fields=[
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('amount', models.DecimalField(decimal_places=2, max_digits=10)),
-                ('kaazbir', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='earnings', to=settings.AUTH_USER_MODEL)),
-                ('mission', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='missions.mission')),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("amount", models.DecimalField(decimal_places=2, max_digits=10)),
+                (
+                    "kaazbir",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="earnings",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "mission",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="missions.mission",
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='MissionPicture',
+            name="MissionPicture",
             fields=[
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('image', models.ImageField(upload_to='missions/')),
-                ('mission', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='pictures', to='missions.mission')),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("image", models.ImageField(upload_to="missions/")),
+                (
+                    "mission",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="pictures",
+                        to="missions.mission",
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='MissionApplication',
+            name="MissionApplication",
             fields=[
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('action', models.CharField(choices=[('bid', 'Bid'), ('reject', 'Reject')], max_length=10)),
-                ('budget', models.DecimalField(blank=True, decimal_places=2, max_digits=10, null=True)),
-                ('message', models.TextField(blank=True)),
-                ('kaazbir', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='mission_applications', to=settings.AUTH_USER_MODEL)),
-                ('mission', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='applications', to='missions.mission')),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    "action",
+                    models.CharField(
+                        choices=[("bid", "Bid"), ("reject", "Reject")], max_length=10
+                    ),
+                ),
+                (
+                    "budget",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=10, null=True
+                    ),
+                ),
+                ("message", models.TextField(blank=True)),
+                (
+                    "kaazbir",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="mission_applications",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "mission",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="applications",
+                        to="missions.mission",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-created_at'],
-                'unique_together': {('mission', 'kaazbir')},
+                "ordering": ["-created_at"],
+                "unique_together": {("mission", "kaazbir")},
             },
         ),
         migrations.CreateModel(
-            name='Review',
+            name="Review",
             fields=[
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('rating', models.PositiveSmallIntegerField()),
-                ('review_text', models.TextField(blank=True)),
-                ('hirer', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='reviews_given', to=settings.AUTH_USER_MODEL)),
-                ('kaazbir', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='reviews_received', to=settings.AUTH_USER_MODEL)),
-                ('mission', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='reviews', to='missions.mission')),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("rating", models.PositiveSmallIntegerField()),
+                ("review_text", models.TextField(blank=True)),
+                (
+                    "hirer",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="reviews_given",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "kaazbir",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="reviews_received",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "mission",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="reviews",
+                        to="missions.mission",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-created_at'],
-                'unique_together': {('mission', 'hirer')},
+                "ordering": ["-created_at"],
+                "unique_together": {("mission", "hirer")},
             },
         ),
     ]

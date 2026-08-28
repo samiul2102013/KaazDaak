@@ -17,36 +17,80 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='HirerMedia',
+            name="HirerMedia",
             fields=[
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('media_type', models.CharField(choices=[('certificate', 'Certificate'), ('license', 'License')], max_length=20)),
-                ('name', models.CharField(max_length=255)),
-                ('picture', models.ImageField(upload_to='hirer_media/')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='hirer_media', to=settings.AUTH_USER_MODEL)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    "media_type",
+                    models.CharField(
+                        choices=[
+                            ("certificate", "Certificate"),
+                            ("license", "License"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
+                ("picture", models.ImageField(upload_to="hirer_media/")),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="hirer_media",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='HirerProfile',
+            name="HirerProfile",
             fields=[
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('profile_picture', models.ImageField(blank=True, null=True, upload_to='hirer_profiles/')),
-                ('push_notifications', models.BooleanField(default=True)),
-                ('sms_notifications', models.BooleanField(default=True)),
-                ('email_notifications', models.BooleanField(default=True)),
-                ('task_updates', models.BooleanField(default=True)),
-                ('promotions_and_offers', models.BooleanField(default=False)),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='hirer_profile', to=settings.AUTH_USER_MODEL)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    "profile_picture",
+                    models.ImageField(
+                        blank=True, null=True, upload_to="hirer_profiles/"
+                    ),
+                ),
+                ("push_notifications", models.BooleanField(default=True)),
+                ("sms_notifications", models.BooleanField(default=True)),
+                ("email_notifications", models.BooleanField(default=True)),
+                ("task_updates", models.BooleanField(default=True)),
+                ("promotions_and_offers", models.BooleanField(default=False)),
+                (
+                    "user",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="hirer_profile",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
     ]

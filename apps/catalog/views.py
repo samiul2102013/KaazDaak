@@ -94,9 +94,9 @@ class SubserviceCustomFieldsView(APIView):
 
     def get(self, request, pk):
         subservice = get_object_or_404(Subservice, pk=pk)
-        configs = subservice.custom_field_configs.select_related("custom_field").order_by(
-            "order", "id"
-        )
+        configs = subservice.custom_field_configs.select_related(
+            "custom_field"
+        ).order_by("order", "id")
         serializer = SubserviceCustomFieldSerializer(
             configs, many=True, context={"request": request}
         )

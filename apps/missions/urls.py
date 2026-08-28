@@ -24,22 +24,48 @@ from .views import (
 
 urlpatterns = [
     path("missions/", MissionCreateView.as_view(), name="mission-create"),
-    path("hirer/tasks/recent/", HirerRecentTasksView.as_view(), name="hirer-tasks-recent"),
+    path(
+        "hirer/tasks/recent/", HirerRecentTasksView.as_view(), name="hirer-tasks-recent"
+    ),
     path("hirer/activity/", HirerActivityView.as_view(), name="hirer-activity"),
     path("tasks/mine/", TaskMineView.as_view(), name="tasks-mine"),
     path("missions/<uuid:pk>/", MissionDetailView.as_view(), name="mission-detail"),
     path("missions/<uuid:pk>/bid/", MissionBidView.as_view(), name="mission-bid"),
-    path("missions/<uuid:pk>/confirm/", MissionConfirmView.as_view(), name="mission-confirm"),
+    path(
+        "missions/<uuid:pk>/confirm/",
+        MissionConfirmView.as_view(),
+        name="mission-confirm",
+    ),
     path("kasbir/", KasbirListView.as_view(), name="kasbir-list"),
     path("kasbir/available/", KasbirAvailableView.as_view(), name="kasbir-available"),
     path("kasbir/search/", KasbirSearchView.as_view(), name="kasbir-search"),
-    path("categories/<uuid:pk>/kasbirs/", CategoryKasbirsView.as_view(), name="category-kasbirs"),
+    path(
+        "categories/<uuid:pk>/kasbirs/",
+        CategoryKasbirsView.as_view(),
+        name="category-kasbirs",
+    ),
     path("chat/<uuid:pk>/offers/", ChatOfferView.as_view(), name="chat-offers"),
-    path("kaazbir/activities/", KaazbirActivityListView.as_view(), name="kaazbir-activities"),
-    path("kaazbir/activities/<uuid:pk>/", KaazbirActivityDetailView.as_view(), name="kaazbir-activity-detail"),
+    path(
+        "kaazbir/activities/",
+        KaazbirActivityListView.as_view(),
+        name="kaazbir-activities",
+    ),
+    path(
+        "kaazbir/activities/<uuid:pk>/",
+        KaazbirActivityDetailView.as_view(),
+        name="kaazbir-activity-detail",
+    ),
     path("kaazbir/earnings/", KaazbirEarningsView.as_view(), name="kaazbir-earnings"),
-    path("kaazbir/stats/acceptance-ratio/", KaazbirAcceptanceRatioView.as_view(), name="kaazbir-stats"),
-    path("kaazbir/reviews/average/", KaazbirReviewAverageView.as_view(), name="kaazbir-reviews-avg"),
+    path(
+        "kaazbir/stats/acceptance-ratio/",
+        KaazbirAcceptanceRatioView.as_view(),
+        name="kaazbir-stats",
+    ),
+    path(
+        "kaazbir/reviews/average/",
+        KaazbirReviewAverageView.as_view(),
+        name="kaazbir-reviews-avg",
+    ),
     path("kaazbir/reviews/", KaazbirReviewListView.as_view(), name="kaazbir-reviews"),
     path("missions/feed/", MissionListView.as_view(), name="mission-feed"),
 ]

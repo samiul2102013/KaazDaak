@@ -69,7 +69,9 @@ class HirerRecentTasksView(APIView):
                 {
                     "mission_id": str(m.id),
                     "title": m.title,
-                    "subtitle": m.subtitle or m.description[:100] if m.description else "",
+                    "subtitle": (
+                        m.subtitle or m.description[:100] if m.description else ""
+                    ),
                     "amount": float(m.budget) if m.budget else 0,
                     "posted_time_ago": timesince.timesince(m.created_at) + " ago",
                     "total_applications": m.applications.count(),
@@ -82,9 +84,11 @@ class MissionListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        queryset = Mission.objects.filter(
-            status=Mission.Status.OPEN
-        ).select_related("hirer", "service", "subservice").prefetch_related("pictures")
+        queryset = (
+            Mission.objects.filter(status=Mission.Status.OPEN)
+            .select_related("hirer", "service", "subservice")
+            .prefetch_related("pictures")
+        )
 
         service_id = request.query_params.get("service_id")
         if service_id:
@@ -96,7 +100,9 @@ class MissionListView(APIView):
 
         paginator = StandardResultsPagination()
         page = paginator.paginate_queryset(queryset, request)
-        serializer = MissionListSerializer(page, many=True, context={"request": request})
+        serializer = MissionListSerializer(
+            page, many=True, context={"request": request}
+        )
         return success_response(
             data=serializer.data, message="Missions fetched successfully."
         )
@@ -106,9 +112,11 @@ class MissionDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
-        mission = Mission.objects.select_related(
-            "hirer", "kaazbir", "service", "subservice"
-        ).prefetch_related("pictures", "reviews").get(pk=pk)
+        mission = (
+            Mission.objects.select_related("hirer", "kaazbir", "service", "subservice")
+            .prefetch_related("pictures", "reviews")
+            .get(pk=pk)
+        )
         serializer = MissionSerializer(mission, context={"request": request})
         return success_response(
             data=serializer.data, message="Mission fetched successfully."
@@ -163,9 +171,9 @@ class MissionConfirmView(APIView):
     @transaction.atomic
     def post(self, request, pk):
         mission = Mission.objects.filter(
-            pk=pk, hirer=request.user, status__in=[
-                Mission.Status.INTERESTED, Mission.Status.OFFER_SENT
-            ]
+            pk=pk,
+            hirer=request.user,
+            status__in=[Mission.Status.INTERESTED, Mission.Status.OFFER_SENT],
         ).first()
         if not mission:
             return success_response(
@@ -182,15 +190,17 @@ class MissionConfirmView(APIView):
         mission.status = Mission.Status.ACCEPTED
         mission.final_price = mission.kasbir_bid_price or mission.budget
         mission.payment_status = Mission.PaymentStatus.HELD
-        mission.save(update_fields=[
-            "kaazbir_id", "status", "final_price", "payment_status"
-        ])
+        mission.save(
+            update_fields=["kaazbir_id", "status", "final_price", "payment_status"]
+        )
 
         return success_response(
             data={
                 "mission_id": str(mission.id),
                 "status": mission.status,
-                "final_price": float(mission.final_price) if mission.final_price else None,
+                "final_price": (
+                    float(mission.final_price) if mission.final_price else None
+                ),
                 "payment_status": mission.payment_status,
             },
             message="Mission confirmed successfully.",
@@ -252,9 +262,12 @@ class HirerActivityView(APIView):
 
     def get(self, request):
         status_filter = request.query_params.get("status")
-        missions = Mission.objects.filter(hirer=request.user).select_related(
-            "kaazbir"
-        ).prefetch_related("kaazbir__reviews_received").order_by("-created_at")
+        missions = (
+            Mission.objects.filter(hirer=request.user)
+            .select_related("kaazbir")
+            .prefetch_related("kaazbir__reviews_received")
+            .order_by("-created_at")
+        )
 
         if status_filter:
             status_map = {
@@ -280,14 +293,18 @@ class CategoryKasbirsView(APIView):
     def get(self, request, pk):
         from apps.users.models import User
 
-        kaazbirs = User.objects.filter(
-            role="kaazbir",
-            kasbir_services__service_id=pk,
-            is_active=True,
-        ).select_related("kaazbir_profile").prefetch_related(
-            "kasbir_services__subservices", "reviews_received",
-            "missions_assigned"
-        ).distinct()
+        kaazbirs = (
+            User.objects.filter(
+                role="kaazbir",
+                kasbir_services__service_id=pk,
+                is_active=True,
+            )
+            .select_related("kaazbir_profile")
+            .prefetch_related(
+                "kasbir_services__subservices", "reviews_received", "missions_assigned"
+            )
+            .distinct()
+        )
 
         data = []
         for k in kaazbirs:
@@ -299,7 +316,8 @@ class CategoryKasbirsView(APIView):
             reviews = k.reviews_received.all()
             avg_rating = (
                 round(sum(r.rating for r in reviews) / reviews.count(), 1)
-                if reviews else None
+                if reviews
+                else None
             )
             completed = k.missions_assigned.filter(status="completed").count()
 
@@ -316,8 +334,11 @@ class CategoryKasbirsView(APIView):
                     "profile_pic": profile_pic_url,
                     "rating_avg": avg_rating,
                     "sub_categories": sub_categories,
-                    "hourly_rate": float(k.kaazbir_profile.hourly_rate)
-                    if k.kaazbir_profile.hourly_rate else None,
+                    "hourly_rate": (
+                        float(k.kaazbir_profile.hourly_rate)
+                        if k.kaazbir_profile.hourly_rate
+                        else None
+                    ),
                     "completed_jobs": completed,
                     "bio": k.kaazbir_profile.bio,
                 }
@@ -339,20 +360,24 @@ class KasbirListView(APIView):
                 message="service_id is required.",
             )
 
-        kaazbirs = User.objects.filter(
-            role="kaazbir",
-            kasbir_services__service_id=service_id,
-            is_active=True,
-        ).select_related("kaazbir_profile").prefetch_related(
-            "reviews_received", "missions_assigned"
-        ).distinct()
+        kaazbirs = (
+            User.objects.filter(
+                role="kaazbir",
+                kasbir_services__service_id=service_id,
+                is_active=True,
+            )
+            .select_related("kaazbir_profile")
+            .prefetch_related("reviews_received", "missions_assigned")
+            .distinct()
+        )
 
         data = []
         for k in kaazbirs:
             reviews = k.reviews_received.all()
             avg_rating = (
                 round(sum(r.rating for r in reviews) / reviews.count(), 1)
-                if reviews else None
+                if reviews
+                else None
             )
             completed = k.missions_assigned.filter(status="completed").count()
             profile_pic_url = None
@@ -366,8 +391,11 @@ class KasbirListView(APIView):
                     "kasbir_id": str(k.id),
                     "name": k.full_name,
                     "profile_picture": profile_pic_url,
-                    "hourly_rate": float(k.kaazbir_profile.hourly_rate)
-                    if k.kaazbir_profile.hourly_rate else None,
+                    "hourly_rate": (
+                        float(k.kaazbir_profile.hourly_rate)
+                        if k.kaazbir_profile.hourly_rate
+                        else None
+                    ),
                     "completed_jobs": completed,
                     "bio": k.kaazbir_profile.bio,
                     "rating": avg_rating,
@@ -386,34 +414,31 @@ class KasbirAvailableView(APIView):
         service_id = request.query_params.get("service_id")
         subservice_id = request.query_params.get("subservice_id")
 
-        base_qs = User.objects.filter(
-            role="kaazbir", is_active=True
-        ).select_related("kaazbir_profile").prefetch_related(
-            "reviews_received", "missions_assigned"
+        base_qs = (
+            User.objects.filter(role="kaazbir", is_active=True)
+            .select_related("kaazbir_profile")
+            .prefetch_related("reviews_received", "missions_assigned")
         )
 
         if service_id:
             base_qs = base_qs.filter(kasbir_services__service_id=service_id)
 
         if subservice_id:
-            base_qs = base_qs.filter(
-                kasbir_services__subservices__id=subservice_id
-            )
+            base_qs = base_qs.filter(kasbir_services__subservices__id=subservice_id)
 
         kaazbirs = base_qs.distinct()
 
         location = request.query_params.get("location")
         if location:
-            kaazbirs = kaazbirs.filter(
-                kaazbir_profile__location__icontains=location
-            )
+            kaazbirs = kaazbirs.filter(kaazbir_profile__location__icontains=location)
 
         data = []
         for k in kaazbirs:
             reviews = k.reviews_received.all()
             avg_rating = (
                 round(sum(r.rating for r in reviews) / reviews.count(), 1)
-                if reviews else None
+                if reviews
+                else None
             )
             completed = k.missions_assigned.filter(status="completed").count()
             profile_pic_url = None
@@ -427,15 +452,20 @@ class KasbirAvailableView(APIView):
                     "kasbir_id": str(k.id),
                     "name": k.full_name,
                     "profile_picture": profile_pic_url,
-                    "hourly_rate": float(k.kaazbir_profile.hourly_rate)
-                    if k.kaazbir_profile.hourly_rate else None,
+                    "hourly_rate": (
+                        float(k.kaazbir_profile.hourly_rate)
+                        if k.kaazbir_profile.hourly_rate
+                        else None
+                    ),
                     "completed_jobs": completed,
                     "bio": k.kaazbir_profile.bio,
                     "rating": avg_rating,
                 }
             )
 
-        return success_response(data=data, message="Available kasbirs fetched successfully.")
+        return success_response(
+            data=data, message="Available kasbirs fetched successfully."
+        )
 
 
 class KasbirSearchView(APIView):
@@ -450,19 +480,17 @@ class KasbirSearchView(APIView):
         min_rating = request.query_params.get("min_rating")
         max_rate = request.query_params.get("max_rate")
 
-        base_qs = User.objects.filter(
-            role="kaazbir", is_active=True
-        ).select_related("kaazbir_profile").prefetch_related(
-            "reviews_received", "missions_assigned"
+        base_qs = (
+            User.objects.filter(role="kaazbir", is_active=True)
+            .select_related("kaazbir_profile")
+            .prefetch_related("reviews_received", "missions_assigned")
         )
 
         if service_id:
             base_qs = base_qs.filter(kasbir_services__service_id=service_id)
 
         if subservice_id:
-            base_qs = base_qs.filter(
-                kasbir_services__subservices__id=subservice_id
-            )
+            base_qs = base_qs.filter(kasbir_services__subservices__id=subservice_id)
 
         if location:
             base_qs = base_qs.filter(
@@ -473,9 +501,7 @@ class KasbirSearchView(APIView):
             )
 
         if max_rate:
-            base_qs = base_qs.filter(
-                kaazbir_profile__hourly_rate__lte=max_rate
-            )
+            base_qs = base_qs.filter(kaazbir_profile__hourly_rate__lte=max_rate)
 
         kaazbirs = base_qs.distinct()
 
@@ -484,7 +510,8 @@ class KasbirSearchView(APIView):
             reviews = k.reviews_received.all()
             avg_rating = (
                 round(sum(r.rating for r in reviews) / reviews.count(), 1)
-                if reviews else None
+                if reviews
+                else None
             )
 
             if min_rating and (avg_rating is None or avg_rating < float(min_rating)):
@@ -502,8 +529,11 @@ class KasbirSearchView(APIView):
                     "kasbir_id": str(k.id),
                     "name": k.full_name,
                     "profile_picture": profile_pic_url,
-                    "hourly_rate": float(k.kaazbir_profile.hourly_rate)
-                    if k.kaazbir_profile.hourly_rate else None,
+                    "hourly_rate": (
+                        float(k.kaazbir_profile.hourly_rate)
+                        if k.kaazbir_profile.hourly_rate
+                        else None
+                    ),
                     "completed_jobs": completed,
                     "bio": k.kaazbir_profile.bio,
                     "rating": avg_rating,
@@ -518,9 +548,12 @@ class KaazbirActivityListView(APIView):
 
     def get(self, request):
         status_filter = request.query_params.get("status")
-        missions = Mission.objects.filter(kaazbir=request.user).select_related(
-            "service", "subservice"
-        ).prefetch_related("pictures").order_by("-created_at")
+        missions = (
+            Mission.objects.filter(kaazbir=request.user)
+            .select_related("service", "subservice")
+            .prefetch_related("pictures")
+            .order_by("-created_at")
+        )
 
         if status_filter:
             status_map = {
@@ -545,9 +578,11 @@ class KaazbirActivityDetailView(APIView):
     permission_classes = [IsAuthenticated, IsKaazbir]
 
     def get(self, request, pk):
-        mission = Mission.objects.filter(
-            pk=pk, kaazbir=request.user
-        ).select_related("hirer").first()
+        mission = (
+            Mission.objects.filter(pk=pk, kaazbir=request.user)
+            .select_related("hirer")
+            .first()
+        )
         if not mission:
             return success_response(
                 data=None,
@@ -584,9 +619,12 @@ class KaazbirEarningsView(APIView):
             start_of_week = now - timezone.timedelta(days=now.weekday())
             for i in range(7):
                 day = start_of_week + timezone.timedelta(days=i)
-                day_total = queryset.filter(
-                    updated_at__date=day.date()
-                ).aggregate(total=Sum("final_price"))["total"] or 0
+                day_total = (
+                    queryset.filter(updated_at__date=day.date()).aggregate(
+                        total=Sum("final_price")
+                    )["total"]
+                    or 0
+                )
                 data.append(
                     {
                         "day": day.strftime("%A"),
@@ -598,10 +636,13 @@ class KaazbirEarningsView(APIView):
             for week in range(1, 5):
                 week_start = start_of_month + timezone.timedelta(weeks=week - 1)
                 week_end = week_start + timezone.timedelta(weeks=1)
-                week_total = queryset.filter(
-                    updated_at__gte=week_start,
-                    updated_at__lt=week_end,
-                ).aggregate(total=Sum("final_price"))["total"] or 0
+                week_total = (
+                    queryset.filter(
+                        updated_at__gte=week_start,
+                        updated_at__lt=week_end,
+                    ).aggregate(total=Sum("final_price"))["total"]
+                    or 0
+                )
                 data.append(
                     {
                         "week": f"Week {week}",
@@ -649,10 +690,7 @@ class KaazbirReviewAverageView(APIView):
     def get(self, request):
         reviews = Review.objects.filter(kaazbir=request.user)
         total = reviews.count()
-        avg = (
-            round(sum(r.rating for r in reviews) / total, 1)
-            if total > 0 else 0
-        )
+        avg = round(sum(r.rating for r in reviews) / total, 1) if total > 0 else 0
         return success_response(
             data={
                 "average_rating": avg,
@@ -666,13 +704,13 @@ class KaazbirReviewListView(APIView):
     permission_classes = [IsAuthenticated, IsKaazbir]
 
     def get(self, request):
-        reviews = Review.objects.filter(kaazbir=request.user).select_related(
-            "hirer__hirer_profile"
-        ).order_by("-created_at")
-
-        serializer = ReviewSerializer(
-            reviews, many=True, context={"request": request}
+        reviews = (
+            Review.objects.filter(kaazbir=request.user)
+            .select_related("hirer__hirer_profile")
+            .order_by("-created_at")
         )
+
+        serializer = ReviewSerializer(reviews, many=True, context={"request": request})
         return success_response(
             data=serializer.data, message="Reviews fetched successfully."
         )
@@ -682,9 +720,11 @@ class TaskMineView(APIView):
     permission_classes = [IsAuthenticated, IsHirer]
 
     def get(self, request):
-        missions = Mission.objects.filter(hirer=request.user).prefetch_related(
-            "pictures"
-        ).order_by("-created_at")
+        missions = (
+            Mission.objects.filter(hirer=request.user)
+            .prefetch_related("pictures")
+            .order_by("-created_at")
+        )
 
         data = []
         for m in missions:
@@ -703,6 +743,4 @@ class TaskMineView(APIView):
                 }
             )
 
-        return success_response(
-            data=data, message="Tasks fetched successfully."
-        )
+        return success_response(data=data, message="Tasks fetched successfully.")

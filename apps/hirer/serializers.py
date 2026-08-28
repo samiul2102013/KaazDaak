@@ -22,7 +22,9 @@ class HirerProfileSerializer(serializers.ModelSerializer):
 class HirerBasicInfoSerializer(serializers.Serializer):
     full_name = serializers.CharField(max_length=255)
     email = serializers.EmailField()
-    phone_number = serializers.CharField(max_length=20, required=False, allow_blank=True)
+    phone_number = serializers.CharField(
+        max_length=20, required=False, allow_blank=True
+    )
 
 
 class HirerMediaSerializer(serializers.ModelSerializer):
