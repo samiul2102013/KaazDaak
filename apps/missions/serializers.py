@@ -161,7 +161,7 @@ class MissionConfirmSerializer(serializers.Serializer):
 
     def validate_kaazbir_id(self, value):
         try:
-            user = User.objects.get(pk=value, role="kaazbir")
+            User.objects.get(pk=value, role="kaazbir")
         except User.DoesNotExist:
             raise serializers.ValidationError("Kaazbir not found.")
         return value
@@ -310,7 +310,7 @@ class ReviewSerializer(serializers.ModelSerializer):
                 return self.context["request"].build_absolute_uri(
                     profile.profile_picture.url
                 )
-        except:
+        except AttributeError:
             pass
         return None
 
@@ -343,7 +343,7 @@ class KasbirSearchSerializer(serializers.Serializer):
                 return self.context["request"].build_absolute_uri(
                     obj.kaazbir_profile.profile_picture.url
                 )
-        except:
+        except AttributeError:
             pass
         return None
 
