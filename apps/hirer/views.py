@@ -1,6 +1,7 @@
 import logging
 
-from rest_framework import status
+from drf_spectacular.utils import inline_serializer
+from rest_framework import serializers, status
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
@@ -19,6 +20,14 @@ from .serializers import (
 
 logger = logging.getLogger(__name__)
 
+_hirer_media_item = inline_serializer(
+    "HirerMediaItemResponse",
+    fields={
+        "name": serializers.CharField(),
+        "picture": serializers.CharField(allow_null=True),
+    },
+)
+
 
 def get_or_create_hirer_profile(user):
     profile, _ = HirerProfile.objects.get_or_create(user=user)
@@ -27,6 +36,15 @@ def get_or_create_hirer_profile(user):
 
 class HirerBasicInfoView(APIView):
     permission_classes = [IsAuthenticated, IsHirer]
+    request_serializer = HirerBasicInfoSerializer
+    response_serializer = inline_serializer(
+        "HirerBasicInfoResponse",
+        fields={
+            "full_name": serializers.CharField(),
+            "email": serializers.EmailField(),
+            "phone_number": serializers.CharField(allow_null=True),
+        },
+    )
 
     def post(self, request):
         serializer = HirerBasicInfoSerializer(data=request.data)
@@ -54,6 +72,14 @@ class HirerBasicInfoView(APIView):
 class HirerMediaView(APIView):
     permission_classes = [IsAuthenticated, IsHirer]
     parser_classes = [MultiPartParser, FormParser]
+    request_serializer = HirerMediaUploadSerializer
+    response_serializer = inline_serializer(
+        "HirerMediaResponse",
+        fields={
+            "certificate": _hirer_media_item,
+            "license": _hirer_media_item,
+        },
+    )
 
     def post(self, request):
         serializer = HirerMediaUploadSerializer(data=request.data)
@@ -101,6 +127,11 @@ class HirerMediaView(APIView):
 class HirerProfilePictureView(APIView):
     permission_classes = [IsAuthenticated, IsHirer]
     parser_classes = [MultiPartParser, FormParser]
+    request_serializer = HirerProfilePictureSerializer
+    response_serializer = inline_serializer(
+        "HirerProfilePictureResponse",
+        fields={"picture": serializers.CharField(allow_null=True)},
+    )
 
     def post(self, request):
         serializer = HirerProfilePictureSerializer(data=request.data)
@@ -122,6 +153,8 @@ class HirerProfilePictureView(APIView):
 
 class HirerNotificationSettingsView(APIView):
     permission_classes = [IsAuthenticated, IsHirer]
+    request_serializer = NotificationSettingsSerializer
+    response_serializer = NotificationSettingsSerializer
 
     def patch(self, request):
         profile = get_or_create_hirer_profile(request.user)
@@ -138,6 +171,8 @@ class HirerNotificationSettingsView(APIView):
 
 class HirerChangePasswordView(APIView):
     permission_classes = [IsAuthenticated, IsHirer]
+    request_serializer = ChangePasswordSerializer
+    response_serializer = inline_serializer("PasswordChangeResponse", fields={})
 
     def post(self, request):
         serializer = ChangePasswordSerializer(data=request.data)

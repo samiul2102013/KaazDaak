@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from drf_spectacular.utils import inline_serializer
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 
@@ -18,6 +19,9 @@ from .services import KaazbirServiceService
 
 
 class ServiceListView(APIView):
+    response_serializer = ServiceSerializer
+    response_many = True
+
     def get(self, request):
         paginator = StandardResultsPagination()
         page = paginator.paginate_queryset(Service.objects.all(), request)
@@ -28,6 +32,8 @@ class ServiceListView(APIView):
 
 
 class ServiceDetailView(APIView):
+    response_serializer = ServiceSerializer
+
     def get(self, request, pk):
         service = get_object_or_404(Service, pk=pk)
         serializer = ServiceSerializer(service, context={"request": request})
@@ -37,6 +43,10 @@ class ServiceDetailView(APIView):
 
 
 class CampaignListView(APIView):
+    schema_skip_auth = True
+    response_serializer = CampaignSerializer
+    response_many = True
+
     def get(self, request):
         paginator = StandardResultsPagination()
         page = paginator.paginate_queryset(
@@ -50,6 +60,11 @@ class CampaignListView(APIView):
 
 class KaazbirServiceUpdateView(APIView):
     permission_classes = [IsKaazbir]
+    request_serializer = KaazbirServiceUpdateSerializer
+    response_serializer = inline_serializer(
+        "KaazbirServiceUpdateResponse",
+        fields={"services": KasbirServiceSerializer(many=True)},
+    )
 
     def post(self, request):
         serializer = KaazbirServiceUpdateSerializer(data=request.data)
@@ -72,6 +87,10 @@ class KaazbirServiceUpdateView(APIView):
 
 class KaazbirServiceMineView(APIView):
     permission_classes = [IsKaazbir]
+    response_serializer = inline_serializer(
+        "KasbirServicesResponse",
+        fields={"services": KasbirServiceSerializer(many=True)},
+    )
 
     def get(self, request):
         services = (
@@ -90,6 +109,9 @@ class KaazbirServiceMineView(APIView):
 
 class SubserviceCustomFieldsView(APIView):
     permission_classes = [AllowAny]
+    schema_skip_auth = True
+    response_serializer = SubserviceCustomFieldSerializer
+    response_many = True
 
     def get(self, request, pk):
         subservice = get_object_or_404(Subservice, pk=pk)

@@ -2,6 +2,13 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
+from drf_spectacular.utils import extend_schema, inline_serializer
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularRedocView,
+    SpectacularSwaggerView,
+)
+from rest_framework import serializers
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -10,6 +17,17 @@ from apps.catalog.views import CampaignListView
 from apps.users.views import KaazbirProfileView
 
 
+@extend_schema(
+    responses={
+        200: inline_serializer(
+            "HealthResponse",
+            fields={
+                "status": serializers.CharField(),
+                "message": serializers.CharField(),
+            },
+        )
+    }
+)
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def health_check(request):
@@ -29,6 +47,21 @@ urlpatterns = [
         name="kaazbir-profile",
     ),
     path("api/v1/offers/", CampaignListView.as_view(), name="offers-list"),
+    path(
+        "api/schema/",
+        SpectacularAPIView.as_view(),
+        name="schema",
+    ),
+    path(
+        "api/docs/",
+        SpectacularSwaggerView.as_view(url_name="schema"),
+        name="docs",
+    ),
+    path(
+        "api/docs/redoc/",
+        SpectacularRedocView.as_view(url_name="schema"),
+        name="redoc",
+    ),
 ]
 
 if settings.DEBUG and "debug_toolbar" in settings.INSTALLED_APPS:

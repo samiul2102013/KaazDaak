@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "django_celery_beat",
     "django_celery_results",
+    "drf_spectacular",
     # Local apps
     "apps.core",
     "apps.common",
@@ -151,6 +152,7 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 20,
     "DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",),
     "EXCEPTION_HANDLER": "apps.common.exceptions.custom_exception_handler",
+    "DEFAULT_SCHEMA_CLASS": "apps.common.schema.EnvelopeAutoSchema",
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.ScopedRateThrottle",
     ],
@@ -158,6 +160,19 @@ REST_FRAMEWORK = {
         "otp_resend": "3/hour",
         "login": "10/minute",
     },
+}
+
+# drf-spectacular (OpenAPI schema + docs)
+SPECTACULAR_SETTINGS = {
+    "TITLE": "KaazDaak API",
+    "DESCRIPTION": (
+        "REST API for KaazDaak - the Bangladeshi gig-work platform connecting "
+        "hirers (employers) with kaazbirs (workers)."
+    ),
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "COMPONENT_SPLIT_REQUEST": True,
+    "POSTPROCESSING_HOOKS": ["apps.common.schema.wrap_envelope_responses"],
 }
 
 # JWT Configuration
