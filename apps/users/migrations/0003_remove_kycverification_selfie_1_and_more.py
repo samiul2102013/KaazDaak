@@ -116,9 +116,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "image",
-                    models.ImageField(
-                        upload_to=apps.users.models.kyc_selfie_file_path
-                    ),
+                    models.ImageField(upload_to=apps.users.models.kyc_selfie_file_path),
                 ),
                 ("order", models.PositiveSmallIntegerField(default=0)),
                 (
