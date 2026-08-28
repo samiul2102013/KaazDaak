@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Campaign, KasbirService, Service, Subservice
+from .models import Campaign, CustomField, KasbirService, Service, Subservice, SubserviceCustomField
 
 
 @admin.register(Service)
@@ -28,3 +28,17 @@ class CampaignAdmin(admin.ModelAdmin):
     list_display = ("title", "coupon_code", "is_active", "created_at")
     list_filter = ("is_active",)
     search_fields = ("title", "coupon_code")
+
+
+@admin.register(CustomField)
+class CustomFieldAdmin(admin.ModelAdmin):
+    list_display = ("name", "field_type", "is_required")
+    list_filter = ("field_type", "is_required")
+    search_fields = ("name",)
+
+
+@admin.register(SubserviceCustomField)
+class SubserviceCustomFieldAdmin(admin.ModelAdmin):
+    list_display = ("subservice", "custom_field", "order", "is_required")
+    list_filter = ("subservice__service", "is_required")
+    search_fields = ("subservice__name", "custom_field__name")

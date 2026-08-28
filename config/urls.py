@@ -6,6 +6,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from apps.catalog.views import CampaignListView
 from apps.users.views import KaazbirProfileView
 
 
@@ -20,14 +21,17 @@ urlpatterns = [
     path("api/health/", health_check, name="health_check"),
     path("api/v1/auth/", include("apps.users.urls")),
     path("api/v1/", include("apps.catalog.urls")),
+    path("api/v1/", include("apps.missions.urls")),
+    path("api/v1/hirer/", include("apps.hirer.urls")),
     path(
         "api/v1/kaazbir/profile/",
         KaazbirProfileView.as_view(),
         name="kaazbir-profile",
     ),
+    path("api/v1/offers/", CampaignListView.as_view(), name="offers-list"),
 ]
 
-if settings.DEBUG:
+if settings.DEBUG and "debug_toolbar" in settings.INSTALLED_APPS:
     try:
         import debug_toolbar
 

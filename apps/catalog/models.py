@@ -71,3 +71,50 @@ class Campaign(TimestampedModel):
 
     def __str__(self):
         return self.title
+
+
+class CustomField(TimestampedModel):
+    class FieldType(models.TextChoices):
+        TEXT = "text", "Text"
+        NUMBER = "number", "Number"
+        DROPDOWN = "dropdown", "Dropdown"
+        RADIO = "radio", "Radio"
+        BOOLEAN = "boolean", "Boolean"
+        IMAGE = "image", "Image Upload"
+        LOCATION = "location", "Location"
+        PRICE = "price", "Price"
+        DATE = "date", "Date"
+        TIME = "time", "Time"
+        MULTI_SELECT = "multi_select", "Multi Select"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=255)
+    field_type = models.CharField(max_length=20, choices=FieldType.choices)
+    options = models.JSONField(default=list, blank=True)
+    placeholder = models.CharField(max_length=255, blank=True)
+    is_required = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
+class SubserviceCustomField(TimestampedModel):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    subservice = models.ForeignKey(
+        Subservice, on_delete=models.CASCADE, related_name="custom_field_configs"
+    )
+    custom_field = models.ForeignKey(
+        CustomField, on_delete=models.CASCADE, related_name="subservice_configs"
+    )
+    order = models.PositiveIntegerField(default=0)
+    is_required = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["order", "id"]
+        unique_together = ["subservice", "custom_field"]
+
+    def __str__(self):
+        return f"{self.subservice.name} - {self.custom_field.name}"

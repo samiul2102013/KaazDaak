@@ -1,6 +1,13 @@
 from rest_framework import serializers
 
-from .models import Campaign, KasbirService, Service, Subservice
+from .models import (
+    Campaign,
+    CustomField,
+    KasbirService,
+    Service,
+    Subservice,
+    SubserviceCustomField,
+)
 
 
 class SubserviceSerializer(serializers.ModelSerializer):
@@ -64,3 +71,17 @@ class KaazbirServiceUpdateSerializer(serializers.Serializer):
     services = serializers.ListField(
         child=KasbirServiceEntrySerializer(), allow_empty=True
     )
+
+
+class CustomFieldSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomField
+        fields = ["id", "name", "field_type", "options", "placeholder", "is_required"]
+
+
+class SubserviceCustomFieldSerializer(serializers.ModelSerializer):
+    custom_field = CustomFieldSerializer(read_only=True)
+
+    class Meta:
+        model = SubserviceCustomField
+        fields = ["id", "custom_field", "order", "is_required"]
