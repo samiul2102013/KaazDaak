@@ -3,7 +3,7 @@ import logging
 from django.db import models, transaction
 from rest_framework import status
 from rest_framework.parsers import FormParser, MultiPartParser
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
 from apps.common.pagination import StandardResultsPagination
@@ -15,7 +15,6 @@ from .serializers import (
     HirerActivitySerializer,
     KaazbirActivityDetailSerializer,
     KaazbirActivitySerializer,
-    KasbirSearchSerializer,
     MissionBidSerializer,
     MissionConfirmSerializer,
     MissionCreateSerializer,
@@ -660,7 +659,6 @@ class KaazbirAcceptanceRatioView(APIView):
     permission_classes = [IsAuthenticated, IsKaazbir]
 
     def get(self, request):
-        total = Mission.objects.filter(kaazbir=request.user).count()
         interested = Mission.objects.filter(
             kaazbir=request.user,
             status__in=["interested", "offer_sent"],

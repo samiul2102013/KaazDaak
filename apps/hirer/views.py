@@ -14,7 +14,6 @@ from .serializers import (
     HirerBasicInfoSerializer,
     HirerMediaUploadSerializer,
     HirerProfilePictureSerializer,
-    HirerProfileSerializer,
     NotificationSettingsSerializer,
 )
 

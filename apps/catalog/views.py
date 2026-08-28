@@ -9,7 +9,6 @@ from apps.users.permissions import IsKaazbir
 from .models import Campaign, Service, Subservice
 from .serializers import (
     CampaignSerializer,
-    CustomFieldSerializer,
     KaazbirServiceUpdateSerializer,
     KasbirServiceSerializer,
     ServiceSerializer,
