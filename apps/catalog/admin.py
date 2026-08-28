@@ -1,6 +1,13 @@
 from django.contrib import admin
 
-from .models import Campaign, CustomField, KasbirService, Service, Subservice, SubserviceCustomField
+from .models import (
+    Campaign,
+    CustomField,
+    KasbirService,
+    Service,
+    Subservice,
+    SubserviceCustomField,
+)
 
 
 @admin.register(Service)
