@@ -6,6 +6,7 @@ from .views import (
     KaazbirServiceUpdateView,
     ServiceDetailView,
     ServiceListView,
+    SubserviceCustomFieldsView,
 )
 
 urlpatterns = [
@@ -25,5 +26,10 @@ urlpatterns = [
         "kaazbir/services/",
         KaazbirServiceUpdateView.as_view(),
         name="kaazbir-services-update",
+    ),
+    path(
+        "subservices/<uuid:pk>/custom-fields/",
+        SubserviceCustomFieldsView.as_view(),
+        name="subservice-custom-fields",
     ),
 ]

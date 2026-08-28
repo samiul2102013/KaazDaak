@@ -34,7 +34,7 @@ class User(AbstractBaseUser, PermissionsMixin, TimestampedModel):
     class Meta:
         constraints = [
             models.CheckConstraint(
-                check=models.Q(email__isnull=False)
+                condition=models.Q(email__isnull=False)
                 | models.Q(phone_number__isnull=False),
                 name="user_has_email_or_phone",
             )
@@ -68,6 +68,13 @@ class KaazbirProfile(TimestampedModel):
     upazila = models.CharField(max_length=100, null=True, blank=True)
     location = models.CharField(max_length=255, null=True, blank=True)
     is_profile_complete = models.BooleanField(default=False)
+    hourly_rate = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True
+    )
+    bio = models.TextField(blank=True)
+    profile_picture = models.ImageField(
+        upload_to="kaazbir_profiles/", blank=True, null=True
+    )
 
     def __str__(self):
         return f"{self.business_name} ({self.user.username})"

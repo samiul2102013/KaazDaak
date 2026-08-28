@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     "apps.common",
     "apps.users",
     "apps.catalog",
+    "apps.missions",
+    "apps.hirer",
 ]
 
 MIDDLEWARE = [
