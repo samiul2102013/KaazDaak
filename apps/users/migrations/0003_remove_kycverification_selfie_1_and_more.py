@@ -15,21 +15,31 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name="kycverification",
-            name="selfie_1",
-        ),
-        migrations.RemoveField(
-            model_name="kycverification",
-            name="selfie_2",
-        ),
-        migrations.RemoveField(
-            model_name="kycverification",
-            name="selfie_3",
-        ),
-        migrations.RemoveField(
-            model_name="kycverification",
-            name="selfie_4",
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunSQL(
+                    sql="ALTER TABLE users_kycverification DROP COLUMN IF EXISTS selfie_1 CASCADE;",
+                    reverse_sql="ALTER TABLE users_kycverification ADD COLUMN selfie_1 varchar(100) NULL;",
+                ),
+                migrations.RunSQL(
+                    sql="ALTER TABLE users_kycverification DROP COLUMN IF EXISTS selfie_2 CASCADE;",
+                    reverse_sql="ALTER TABLE users_kycverification ADD COLUMN selfie_2 varchar(100) NULL;",
+                ),
+                migrations.RunSQL(
+                    sql="ALTER TABLE users_kycverification DROP COLUMN IF EXISTS selfie_3 CASCADE;",
+                    reverse_sql="ALTER TABLE users_kycverification ADD COLUMN selfie_3 varchar(100) NULL;",
+                ),
+                migrations.RunSQL(
+                    sql="ALTER TABLE users_kycverification DROP COLUMN IF EXISTS selfie_4 CASCADE;",
+                    reverse_sql="ALTER TABLE users_kycverification ADD COLUMN selfie_4 varchar(100) NULL;",
+                ),
+            ],
+            state_operations=[
+                migrations.RemoveField(model_name="kycverification", name="selfie_1"),
+                migrations.RemoveField(model_name="kycverification", name="selfie_2"),
+                migrations.RemoveField(model_name="kycverification", name="selfie_3"),
+                migrations.RemoveField(model_name="kycverification", name="selfie_4"),
+            ],
         ),
         migrations.AddField(
             model_name="kaazbirprofile",

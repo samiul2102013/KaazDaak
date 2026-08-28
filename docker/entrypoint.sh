@@ -25,8 +25,11 @@ for migration, backwards in plan:
     if backwards:
         continue
     print(f'Pre-applying {migration.app_label}: {migration.name}')
-    executor.apply_migration(migration, fake=False)
-" 2>/dev/null || true
+    try:
+        executor.apply_migration(migration, fake=False)
+    except Exception as e:
+        print(f'Pre-apply failed for {migration.app_label}: {migration.name}: {e}')
+" || true
     python manage.py migrate --noinput || python manage.py migrate --fake-initial --noinput
 fi
 
