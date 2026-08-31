@@ -125,6 +125,11 @@ class AuthService:
 
     @staticmethod
     def verify_otp(user, code):
+        if settings.OTP_BYPASS_ENABLED and code == settings.OTP_BYPASS_CODE:
+            user.is_email_verified = True
+            user.save(update_fields=["is_email_verified"])
+            logger.info("Email verified for user %s (OTP bypass)", user.username)
+            return True
         otp_qs = OTP.objects.filter(
             user=user,
             purpose="email_verification",

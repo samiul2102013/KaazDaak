@@ -125,6 +125,39 @@ class TestOTPVerification:
 
 
 @pytest.mark.django_db
+class TestOTPBypass:
+    BYPASS_CODE = "123456"
+
+    def test_bypass_disabled_rejects_code(self, hirer_user, monkeypatch, settings):
+        monkeypatch.setattr(settings, "OTP_BYPASS_ENABLED", False)
+        monkeypatch.setattr(settings, "OTP_BYPASS_CODE", self.BYPASS_CODE)
+        AuthService.generate_and_send_otp(hirer_user)
+        result = AuthService.verify_otp(hirer_user, self.BYPASS_CODE)
+        assert result is False
+        hirer_user.refresh_from_db()
+        assert hirer_user.is_email_verified is False
+
+    def test_bypass_enabled_accepts_code(self, hirer_user, monkeypatch, settings):
+        monkeypatch.setattr(settings, "OTP_BYPASS_ENABLED", True)
+        monkeypatch.setattr(settings, "OTP_BYPASS_CODE", self.BYPASS_CODE)
+        result = AuthService.verify_otp(hirer_user, self.BYPASS_CODE)
+        assert result is True
+        hirer_user.refresh_from_db()
+        assert hirer_user.is_email_verified is True
+
+    def test_bypass_enabled_wrong_code_uses_normal_flow(
+        self, hirer_user, monkeypatch, settings
+    ):
+        monkeypatch.setattr(settings, "OTP_BYPASS_ENABLED", True)
+        monkeypatch.setattr(settings, "OTP_BYPASS_CODE", self.BYPASS_CODE)
+        AuthService.generate_and_send_otp(hirer_user)
+        result = AuthService.verify_otp(hirer_user, "000000")
+        assert result is False
+        hirer_user.refresh_from_db()
+        assert hirer_user.is_email_verified is False
+
+
+@pytest.mark.django_db
 class TestVerifyEmailEndpoint:
     VERIFY_URL = "/api/v1/auth/verify-email/"
 
