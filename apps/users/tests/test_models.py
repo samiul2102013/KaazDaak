@@ -68,6 +68,14 @@ class TestUserModel:
                 full_name="User Two",
             )
 
+    def test_create_user_without_contact_raises_error(self):
+        with pytest.raises(ValueError, match="email or a phone number"):
+            User.objects.create_user(
+                username="nocontact",
+                password="pass123",
+                full_name="No Contact",
+            )
+
     def test_user_has_email_or_phone_constraint(self):
         with pytest.raises(IntegrityError):
             user = User(
