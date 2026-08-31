@@ -1,46 +1,6 @@
 from drf_spectacular.openapi import AutoSchema
 
-API_TAGS = [
-    {
-        "name": "Auth",
-        "description": (
-            "Authentication: registration (hirer/kaazbir), email verification, "
-            "OTP resend, login, token refresh, logout and current user."
-        ),
-    },
-    {
-        "name": "Catalog",
-        "description": (
-            "Catalog: browse services, campaigns/offers, sub-service custom "
-            "fields and manage the kaazbir's own service list."
-        ),
-    },
-    {
-        "name": "Kaazbir",
-        "description": (
-            "KaazBir (worker) side: profile, KYC submission, kasbir discovery "
-            "and search, activities, earnings, stats and reviews."
-        ),
-    },
-    {
-        "name": "Hirer",
-        "description": (
-            "Hirer (employer) side: profile/basic info, media, profile picture, "
-            "notification settings, change password and task overview."
-        ),
-    },
-    {
-        "name": "Missions",
-        "description": (
-            "Missions: create, browse the feed, view detail, bid, confirm and "
-            "send/accept direct offers."
-        ),
-    },
-    {
-        "name": "System",
-        "description": "Infrastructure endpoints such as health checks.",
-    },
-]
+from apps.common.api_spec import build_tag_list
 
 
 class EnvelopeAutoSchema(AutoSchema):
@@ -155,5 +115,5 @@ def wrap_envelope_responses(result, generator, request, public):
                 continue
             _apply_envelope(operation.get("responses", {}))
 
-    result["tags"] = list(API_TAGS)
+    result["tags"] = build_tag_list()
     return result

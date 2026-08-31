@@ -11,6 +11,7 @@ from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView as SimpleJWTTokenRefreshView
 
+from apps.common.api_spec import SECTION_TAGS
 from apps.common.responses import success_response
 
 from .models import User
@@ -35,7 +36,7 @@ class HirerRegisterView(APIView):
     permission_classes = [AllowAny]
     throttle_scope = None
     schema_skip_auth = True
-    tags = ["Auth"]
+    tags = [SECTION_TAGS["users-auth"]]
     request_serializer = HirerRegisterSerializer
     response_serializer = {
         status.HTTP_201_CREATED: inline_serializer(
@@ -67,7 +68,7 @@ class KaazbirRegisterView(APIView):
     permission_classes = [AllowAny]
     throttle_scope = None
     schema_skip_auth = True
-    tags = ["Auth"]
+    tags = [SECTION_TAGS["users-auth"]]
     request_serializer = KaazbirRegisterSerializer
     response_serializer = {
         status.HTTP_201_CREATED: inline_serializer(
@@ -101,7 +102,7 @@ class VerifyEmailView(APIView):
     permission_classes = [AllowAny]
     throttle_scope = None
     schema_skip_auth = True
-    tags = ["Auth"]
+    tags = [SECTION_TAGS["users-auth"]]
     request_serializer = VerifyEmailSerializer
     response_serializer = inline_serializer(
         "VerifyEmailResponse",
@@ -170,7 +171,7 @@ class ResendOTPView(APIView):
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = "otp_resend"
     schema_skip_auth = True
-    tags = ["Auth"]
+    tags = [SECTION_TAGS["users-auth"]]
     request_serializer = ResendOTPSerializer
     response_serializer = inline_serializer("ResendOTPResponse", fields={})
 
@@ -199,7 +200,7 @@ class LoginView(APIView):
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = "login"
     schema_skip_auth = True
-    tags = ["Auth"]
+    tags = [SECTION_TAGS["users-auth"]]
     request_serializer = LoginSerializer
     response_serializer = inline_serializer(
         "LoginResponse",
@@ -255,7 +256,7 @@ class LoginView(APIView):
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
-    tags = ["Auth"]
+    tags = [SECTION_TAGS["users-auth"]]
     request_serializer = inline_serializer(
         "LogoutRequest",
         fields={"refresh": serializers.CharField(required=False)},
@@ -275,7 +276,7 @@ class LogoutView(APIView):
 
 class CurrentUserView(APIView):
     permission_classes = [IsAuthenticated]
-    tags = ["Auth"]
+    tags = [SECTION_TAGS["users-auth"]]
     response_serializer = UserSerializer
 
     def get(self, request):
@@ -285,7 +286,7 @@ class CurrentUserView(APIView):
 
 class KYCSubmitView(APIView):
     permission_classes = [IsAuthenticated, IsKaazbir]
-    tags = ["Kaazbir"]
+    tags = [SECTION_TAGS["kyc-verification"]]
     request_serializer = KYCSubmitSerializer
     response_serializer = {
         status.HTTP_201_CREATED: inline_serializer(
@@ -318,7 +319,7 @@ class KYCSubmitView(APIView):
 
 class KaazbirProfileView(APIView):
     permission_classes = [IsAuthenticated, IsKaazbir]
-    tags = ["Kaazbir"]
+    tags = [SECTION_TAGS["kaazbir-profiles"]]
     response_serializer_get = KaazbirProfileDetailSerializer
     request_serializer_post = KaazbirProfileUpdateSerializer
     response_serializer_post = inline_serializer(
@@ -356,7 +357,7 @@ class KaazbirProfileView(APIView):
 
 class TokenRefreshView(SimpleJWTTokenRefreshView):
     schema_skip_auth = True
-    tags = ["Auth"]
+    tags = [SECTION_TAGS["users-auth"]]
     request_serializer = TokenRefreshSerializer
     response_serializer = inline_serializer(
         "TokenRefreshResponse",
