@@ -1,5 +1,7 @@
 from drf_spectacular.openapi import AutoSchema
 
+from apps.common.api_spec import build_tag_list
+
 
 class EnvelopeAutoSchema(AutoSchema):
     """Reads optional ``request_serializer``/``response_serializer`` class
@@ -49,6 +51,12 @@ class EnvelopeAutoSchema(AutoSchema):
         if getattr(self.view, "schema_skip_auth", False):
             return []
         return super().get_auth()
+
+    def get_tags(self):
+        tags = self._lookup("tags")
+        if tags is not None:
+            return tags
+        return super().get_tags()
 
 
 def _success_envelope(schema):
@@ -106,4 +114,6 @@ def wrap_envelope_responses(result, generator, request, public):
                 operation.pop("security", None)
                 continue
             _apply_envelope(operation.get("responses", {}))
+
+    result["tags"] = build_tag_list()
     return result

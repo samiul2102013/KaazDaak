@@ -3,6 +3,7 @@ from drf_spectacular.utils import inline_serializer
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 
+from apps.common.api_spec import SECTION_TAGS
 from apps.common.pagination import StandardResultsPagination
 from apps.common.responses import success_response
 from apps.users.permissions import IsKaazbir
@@ -19,6 +20,7 @@ from .services import KaazbirServiceService
 
 
 class ServiceListView(APIView):
+    tags = [SECTION_TAGS["services-subservices"]]
     response_serializer = ServiceSerializer
     response_many = True
 
@@ -32,6 +34,7 @@ class ServiceListView(APIView):
 
 
 class ServiceDetailView(APIView):
+    tags = [SECTION_TAGS["services-subservices"]]
     response_serializer = ServiceSerializer
 
     def get(self, request, pk):
@@ -44,6 +47,7 @@ class ServiceDetailView(APIView):
 
 class CampaignListView(APIView):
     schema_skip_auth = True
+    tags = [SECTION_TAGS["campaigns"]]
     response_serializer = CampaignSerializer
     response_many = True
 
@@ -60,6 +64,7 @@ class CampaignListView(APIView):
 
 class KaazbirServiceUpdateView(APIView):
     permission_classes = [IsKaazbir]
+    tags = [SECTION_TAGS["kaazbir-services"]]
     request_serializer = KaazbirServiceUpdateSerializer
     response_serializer = inline_serializer(
         "KaazbirServiceUpdateResponse",
@@ -87,6 +92,7 @@ class KaazbirServiceUpdateView(APIView):
 
 class KaazbirServiceMineView(APIView):
     permission_classes = [IsKaazbir]
+    tags = [SECTION_TAGS["kaazbir-services"]]
     response_serializer = inline_serializer(
         "KasbirServicesResponse",
         fields={"services": KasbirServiceSerializer(many=True)},
@@ -110,6 +116,7 @@ class KaazbirServiceMineView(APIView):
 class SubserviceCustomFieldsView(APIView):
     permission_classes = [AllowAny]
     schema_skip_auth = True
+    tags = [SECTION_TAGS["custom-fields"]]
     response_serializer = SubserviceCustomFieldSerializer
     response_many = True
 

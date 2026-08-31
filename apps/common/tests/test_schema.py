@@ -1,7 +1,10 @@
 import pytest
+from django.apps import apps
 from drf_spectacular.generators import SchemaGenerator
 from drf_spectacular.validation import validate_schema
 from rest_framework.test import APIClient
+
+from apps.common.api_spec import SECTION_TAGS, SECTIONS
 
 
 @pytest.fixture
@@ -83,3 +86,54 @@ def test_schema_endpoints_respond(api_client):
     assert api_client.get("/api/schema/").status_code == 200
     assert api_client.get("/api/docs/").status_code == 200
     assert api_client.get("/api/docs/redoc/").status_code == 200
+
+
+def test_operations_are_grouped_by_spec_section(schema):
+    assert schema["paths"]["/api/v1/auth/login/"]["post"]["tags"] == [
+        SECTION_TAGS["users-auth"]
+    ]
+    assert schema["paths"]["/api/v1/services/"]["get"]["tags"] == [
+        SECTION_TAGS["services-subservices"]
+    ]
+    assert schema["paths"]["/api/v1/kasbir/search/"]["get"]["tags"] == [
+        SECTION_TAGS["kaazbir-profiles"]
+    ]
+    assert schema["paths"]["/api/v1/auth/kyc/submit/"]["post"]["tags"] == [
+        SECTION_TAGS["kyc-verification"]
+    ]
+    assert schema["paths"]["/api/v1/offers/"]["get"]["tags"] == [
+        SECTION_TAGS["campaigns"]
+    ]
+    assert schema["paths"]["/api/v1/missions/feed/"]["get"]["tags"] == [
+        SECTION_TAGS["missions-bids"]
+    ]
+    assert schema["paths"]["/api/v1/kaazbir/earnings/"]["get"]["tags"] == [
+        SECTION_TAGS["earnings-stats"]
+    ]
+    assert schema["paths"]["/api/v1/hirer/profile/media/"]["post"]["tags"] == [
+        SECTION_TAGS["hirer-profiles"]
+    ]
+    assert schema["paths"]["/api/health/"]["get"]["tags"] == [SECTION_TAGS["system"]]
+
+
+def test_tag_metadata_is_declared_in_spec_order(schema):
+    tag_names = [tag["name"] for tag in schema["tags"]]
+    assert tag_names == [section.tag for section in SECTIONS.values()]
+    assert all(tag["description"] for tag in schema["tags"])
+
+
+def test_spec_sections_reference_real_model_tables():
+    for section in SECTIONS.values():
+        for model_path in section.models:
+            app_label, model_name = model_path.split(".")
+            model = apps.get_model(app_label, model_name)
+            assert model._meta.db_table.startswith(f"{app_label}_")
+
+
+def test_all_operation_tags_are_declared_in_spec(schema):
+    valid_tags = {section.tag for section in SECTIONS.values()}
+    for path, operations in schema["paths"].items():
+        for method, operation in operations.items():
+            if not isinstance(operation, dict) or "tags" not in operation:
+                continue
+            assert operation["tags"][0] in valid_tags, path

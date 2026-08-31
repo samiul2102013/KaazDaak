@@ -14,10 +14,12 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from apps.catalog.views import CampaignListView
+from apps.common.api_spec import SECTION_TAGS
 from apps.users.views import KaazbirProfileView
 
 
 @extend_schema(
+    tags=[SECTION_TAGS["system"]],
     responses={
         200: inline_serializer(
             "HealthResponse",
@@ -26,7 +28,7 @@ from apps.users.views import KaazbirProfileView
                 "message": serializers.CharField(),
             },
         )
-    }
+    },
 )
 @api_view(["GET"])
 @permission_classes([AllowAny])

@@ -6,6 +6,7 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
+from apps.common.api_spec import SECTION_TAGS
 from apps.common.responses import success_response
 from apps.users.permissions import IsHirer
 
@@ -36,6 +37,7 @@ def get_or_create_hirer_profile(user):
 
 class HirerBasicInfoView(APIView):
     permission_classes = [IsAuthenticated, IsHirer]
+    tags = [SECTION_TAGS["hirer-profiles"]]
     request_serializer = HirerBasicInfoSerializer
     response_serializer = inline_serializer(
         "HirerBasicInfoResponse",
@@ -72,6 +74,7 @@ class HirerBasicInfoView(APIView):
 class HirerMediaView(APIView):
     permission_classes = [IsAuthenticated, IsHirer]
     parser_classes = [MultiPartParser, FormParser]
+    tags = [SECTION_TAGS["hirer-profiles"]]
     request_serializer = HirerMediaUploadSerializer
     response_serializer = inline_serializer(
         "HirerMediaResponse",
@@ -127,6 +130,7 @@ class HirerMediaView(APIView):
 class HirerProfilePictureView(APIView):
     permission_classes = [IsAuthenticated, IsHirer]
     parser_classes = [MultiPartParser, FormParser]
+    tags = [SECTION_TAGS["hirer-profiles"]]
     request_serializer = HirerProfilePictureSerializer
     response_serializer = inline_serializer(
         "HirerProfilePictureResponse",
@@ -153,6 +157,7 @@ class HirerProfilePictureView(APIView):
 
 class HirerNotificationSettingsView(APIView):
     permission_classes = [IsAuthenticated, IsHirer]
+    tags = [SECTION_TAGS["hirer-profiles"]]
     request_serializer = NotificationSettingsSerializer
     response_serializer = NotificationSettingsSerializer
 
@@ -171,6 +176,7 @@ class HirerNotificationSettingsView(APIView):
 
 class HirerChangePasswordView(APIView):
     permission_classes = [IsAuthenticated, IsHirer]
+    tags = [SECTION_TAGS["users-auth"]]
     request_serializer = ChangePasswordSerializer
     response_serializer = inline_serializer("PasswordChangeResponse", fields={})
 
