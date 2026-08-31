@@ -1,6 +1,9 @@
 from django.contrib.auth.password_validation import validate_password
 from django.core import exceptions as django_exceptions
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
+
+from apps.catalog.serializers import KasbirServiceSerializer
 
 from .models import OTP, KaazbirProfile, KYCSelfie, KYCVerification, User
 from .validators import normalize_bd_phone, validate_bd_phone_number
@@ -46,6 +49,7 @@ class KaazbirProfileDetailSerializer(serializers.ModelSerializer):
             "services",
         ]
 
+    @extend_schema_field(field=KasbirServiceSerializer(many=True))
     def get_services(self, obj):
         from apps.catalog.serializers import KasbirServiceSerializer
 

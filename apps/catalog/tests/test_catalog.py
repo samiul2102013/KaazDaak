@@ -63,7 +63,7 @@ class TestServiceList:
         assert response.status_code == status.HTTP_200_OK
         assert response.data["success"] is True
         assert response.data["message"] == "Services fetched successfully."
-        data = response.data["data"]
+        data = response.data["data"]["results"]
         assert len(data) == 1
         assert data[0]["name"] == "Home & Personal Services"
         assert data[0]["subservices"][0]["name"] == "House Cleaning"
@@ -106,7 +106,7 @@ class TestCampaignList:
         response = authenticated_client.get(self.LIST_URL)
         assert response.status_code == status.HTTP_200_OK
         assert response.data["success"] is True
-        data = response.data["data"]
+        data = response.data["data"]["results"]
         assert len(data) == 1
         assert data[0]["title"] == "20% off first booking"
         assert data[0]["coupon_code"] == "WELCOME20"
@@ -114,7 +114,7 @@ class TestCampaignList:
     def test_list_empty_when_no_active_campaigns(self, authenticated_client):
         response = authenticated_client.get(self.LIST_URL)
         assert response.status_code == status.HTTP_200_OK
-        assert response.data["data"] == []
+        assert response.data["data"]["results"] == []
 
 
 @pytest.mark.django_db

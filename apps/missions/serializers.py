@@ -145,7 +145,11 @@ class MissionApplicationSerializer(serializers.ModelSerializer):
 class MissionBidSerializer(serializers.Serializer):
     action = serializers.ChoiceField(choices=["bid", "reject"])
     budget = serializers.DecimalField(
-        max_digits=10, decimal_places=2, required=False, allow_null=True
+        max_digits=10,
+        decimal_places=2,
+        required=False,
+        allow_null=True,
+        help_text="Required when 'action' is 'bid'.",
     )
 
     def validate(self, attrs):

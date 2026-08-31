@@ -173,7 +173,9 @@ class ResendOTPView(APIView):
     schema_skip_auth = True
     tags = [SECTION_TAGS["users-auth"]]
     request_serializer = ResendOTPSerializer
-    response_serializer = inline_serializer("ResendOTPResponse", fields={})
+    response_serializer = inline_serializer(
+        "ResendOTPResponse", fields={"message": serializers.CharField()}
+    )
 
     def post(self, request):
         serializer = ResendOTPSerializer(data=request.data)
@@ -258,10 +260,12 @@ class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
     tags = [SECTION_TAGS["users-auth"]]
     request_serializer = inline_serializer(
-        "LogoutRequest",
+        "LogoutBody",
         fields={"refresh": serializers.CharField(required=False)},
     )
-    response_serializer = inline_serializer("LogoutResponse", fields={})
+    response_serializer = inline_serializer(
+        "LogoutResponse", fields={"message": serializers.CharField()}
+    )
 
     def post(self, request):
         try:

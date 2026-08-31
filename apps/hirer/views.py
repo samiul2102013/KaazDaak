@@ -29,6 +29,14 @@ _hirer_media_item = inline_serializer(
     },
 )
 
+_hirer_media_response = inline_serializer(
+    "HirerMediaResponse",
+    fields={
+        "certificate": _hirer_media_item,
+        "license": _hirer_media_item,
+    },
+)
+
 
 def get_or_create_hirer_profile(user):
     profile, _ = HirerProfile.objects.get_or_create(user=user)
@@ -76,13 +84,7 @@ class HirerMediaView(APIView):
     parser_classes = [MultiPartParser, FormParser]
     tags = [SECTION_TAGS["hirer-profiles"]]
     request_serializer = HirerMediaUploadSerializer
-    response_serializer = inline_serializer(
-        "HirerMediaResponse",
-        fields={
-            "certificate": _hirer_media_item,
-            "license": _hirer_media_item,
-        },
-    )
+    response_serializer = _hirer_media_response
 
     def post(self, request):
         serializer = HirerMediaUploadSerializer(data=request.data)
@@ -178,7 +180,9 @@ class HirerChangePasswordView(APIView):
     permission_classes = [IsAuthenticated, IsHirer]
     tags = [SECTION_TAGS["users-auth"]]
     request_serializer = ChangePasswordSerializer
-    response_serializer = inline_serializer("PasswordChangeResponse", fields={})
+    response_serializer = inline_serializer(
+        "PasswordChangeResponse", fields={"message": serializers.CharField()}
+    )
 
     def post(self, request):
         serializer = ChangePasswordSerializer(data=request.data)

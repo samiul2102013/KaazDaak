@@ -1,5 +1,6 @@
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import inline_serializer
+from rest_framework import serializers
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 
@@ -21,15 +22,23 @@ from .services import KaazbirServiceService
 
 class ServiceListView(APIView):
     tags = [SECTION_TAGS["services-subservices"]]
-    response_serializer = ServiceSerializer
-    response_many = True
+    response_serializer = inline_serializer(
+        "PaginatedServiceResponse",
+        fields={
+            "count": serializers.IntegerField(),
+            "next": serializers.CharField(allow_null=True),
+            "previous": serializers.CharField(allow_null=True),
+            "results": ServiceSerializer(many=True),
+        },
+    )
 
     def get(self, request):
         paginator = StandardResultsPagination()
         page = paginator.paginate_queryset(Service.objects.all(), request)
         serializer = ServiceSerializer(page, many=True, context={"request": request})
+        paginated = paginator.get_paginated_response(serializer.data)
         return success_response(
-            data=serializer.data, message="Services fetched successfully."
+            data=paginated.data, message="Services fetched successfully."
         )
 
 
@@ -48,8 +57,15 @@ class ServiceDetailView(APIView):
 class CampaignListView(APIView):
     schema_skip_auth = True
     tags = [SECTION_TAGS["campaigns"]]
-    response_serializer = CampaignSerializer
-    response_many = True
+    response_serializer = inline_serializer(
+        "PaginatedCampaignResponse",
+        fields={
+            "count": serializers.IntegerField(),
+            "next": serializers.CharField(allow_null=True),
+            "previous": serializers.CharField(allow_null=True),
+            "results": CampaignSerializer(many=True),
+        },
+    )
 
     def get(self, request):
         paginator = StandardResultsPagination()
@@ -57,8 +73,9 @@ class CampaignListView(APIView):
             Campaign.objects.filter(is_active=True), request
         )
         serializer = CampaignSerializer(page, many=True, context={"request": request})
+        paginated = paginator.get_paginated_response(serializer.data)
         return success_response(
-            data=serializer.data, message="Campaigns fetched successfully."
+            data=paginated.data, message="Campaigns fetched successfully."
         )
 
 
