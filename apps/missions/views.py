@@ -1,7 +1,7 @@
 import logging
 
 from django.db import models, transaction
-from drf_spectacular.utils import inline_serializer
+from drf_spectacular.utils import OpenApiParameter, extend_schema, inline_serializer
 from rest_framework import serializers, status
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
@@ -122,11 +122,25 @@ class HirerRecentTasksView(APIView):
         return success_response(data=data, message="Recent tasks fetched successfully.")
 
 
+@extend_schema(
+    tags=[SECTION_TAGS["missions-bids"]],
+    parameters=[
+        OpenApiParameter("service_id", str, description="Filter by service UUID"),
+        OpenApiParameter("subservice_id", str, description="Filter by subservice UUID"),
+    ],
+)
 class MissionListView(APIView):
     permission_classes = [IsAuthenticated]
     tags = [SECTION_TAGS["missions-bids"]]
-    response_serializer = MissionListSerializer
-    response_many = True
+    response_serializer = inline_serializer(
+        "PaginatedMissionFeedResponse",
+        fields={
+            "count": serializers.IntegerField(),
+            "next": serializers.CharField(allow_null=True),
+            "previous": serializers.CharField(allow_null=True),
+            "results": MissionListSerializer(many=True),
+        },
+    )
 
     def get(self, request):
         queryset = (
@@ -148,8 +162,9 @@ class MissionListView(APIView):
         serializer = MissionListSerializer(
             page, many=True, context={"request": request}
         )
+        paginated = paginator.get_paginated_response(serializer.data)
         return success_response(
-            data=serializer.data, message="Missions fetched successfully."
+            data=paginated.data, message="Missions fetched successfully."
         )
 
 
@@ -278,7 +293,7 @@ class ChatOfferView(APIView):
     permission_classes = [IsAuthenticated, IsHirer]
     tags = [SECTION_TAGS["missions-bids"]]
     request_serializer = inline_serializer(
-        "ChatOfferRequest",
+        "ChatOfferBody",
         fields={
             "order_title": serializers.CharField(),
             "description": serializers.CharField(required=False, allow_blank=True),
@@ -346,6 +361,16 @@ class ChatOfferView(APIView):
         )
 
 
+@extend_schema(
+    tags=[SECTION_TAGS["missions-bids"]],
+    parameters=[
+        OpenApiParameter(
+            "status",
+            str,
+            description="Filter: pending, hired, in_progress, completed, cancelled",
+        ),
+    ],
+)
 class HirerActivityView(APIView):
     permission_classes = [IsAuthenticated, IsHirer]
     tags = [SECTION_TAGS["missions-bids"]]
@@ -454,6 +479,14 @@ class CategoryKasbirsView(APIView):
         return success_response(data=data, message="Kasbirs fetched successfully.")
 
 
+@extend_schema(
+    tags=[SECTION_TAGS["kaazbir-profiles"]],
+    parameters=[
+        OpenApiParameter(
+            "service_id", str, required=True, description="Service UUID (required)"
+        ),
+    ],
+)
 class KasbirListView(APIView):
     permission_classes = [IsAuthenticated]
     tags = [SECTION_TAGS["kaazbir-profiles"]]
@@ -514,6 +547,14 @@ class KasbirListView(APIView):
         return success_response(data=data, message="Kasbirs fetched successfully.")
 
 
+@extend_schema(
+    tags=[SECTION_TAGS["kaazbir-profiles"]],
+    parameters=[
+        OpenApiParameter("service_id", str, description="Filter by service UUID"),
+        OpenApiParameter("subservice_id", str, description="Filter by subservice UUID"),
+        OpenApiParameter("location", str, description="Filter by location text"),
+    ],
+)
 class KasbirAvailableView(APIView):
     permission_classes = [IsAuthenticated]
     tags = [SECTION_TAGS["kaazbir-profiles"]]
@@ -579,6 +620,20 @@ class KasbirAvailableView(APIView):
         )
 
 
+@extend_schema(
+    tags=[SECTION_TAGS["kaazbir-profiles"]],
+    parameters=[
+        OpenApiParameter("service_id", str, description="Filter by service UUID"),
+        OpenApiParameter("subservice_id", str, description="Filter by subservice UUID"),
+        OpenApiParameter(
+            "location",
+            str,
+            description="Search in location/district/division/upazila",
+        ),
+        OpenApiParameter("min_rating", float, description="Minimum average rating"),
+        OpenApiParameter("max_rate", float, description="Max hourly rate"),
+    ],
+)
 class KasbirSearchView(APIView):
     permission_classes = [IsAuthenticated]
     tags = [SECTION_TAGS["kaazbir-profiles"]]
@@ -656,6 +711,16 @@ class KasbirSearchView(APIView):
         return success_response(data=data, message="Kasbirs fetched successfully.")
 
 
+@extend_schema(
+    tags=[SECTION_TAGS["missions-bids"]],
+    parameters=[
+        OpenApiParameter(
+            "status",
+            str,
+            description="Filter: pending, upcoming, in_progress, completed",
+        ),
+    ],
+)
 class KaazbirActivityListView(APIView):
     permission_classes = [IsAuthenticated, IsKaazbir]
     tags = [SECTION_TAGS["missions-bids"]]
@@ -716,6 +781,12 @@ class KaazbirActivityDetailView(APIView):
         )
 
 
+@extend_schema(
+    tags=[SECTION_TAGS["earnings-stats"]],
+    parameters=[
+        OpenApiParameter("range", str, description="weekly (default) or monthly"),
+    ],
+)
 class KaazbirEarningsView(APIView):
     permission_classes = [IsAuthenticated, IsKaazbir]
     tags = [SECTION_TAGS["earnings-stats"]]

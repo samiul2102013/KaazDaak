@@ -115,5 +115,17 @@ def wrap_envelope_responses(result, generator, request, public):
                 continue
             _apply_envelope(operation.get("responses", {}))
 
+    result["components"].setdefault("schemas", {})
+    result["components"]["schemas"]["ErrorResponse"] = {
+        "type": "object",
+        "properties": {
+            "success": {"type": "boolean", "enum": [False]},
+            "error": {"type": "object"},
+            "message": {"type": "string"},
+            "status_code": {"type": "integer"},
+        },
+        "required": ["success", "error", "message", "status_code"],
+    }
+
     result["tags"] = build_tag_list()
     return result

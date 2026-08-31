@@ -71,7 +71,9 @@ def test_health_is_not_enveloped(schema):
 
 def test_list_endpoints_wrap_data_in_array(schema):
     services = _response_schema(schema, "/api/v1/services/", method="get")
-    assert services["properties"]["data"]["type"] == "array"
+    data = _resolve_component(schema, services["properties"]["data"])
+    assert data["type"] == "object"
+    assert data["properties"]["results"]["type"] == "array"
 
 
 def test_request_body_serializer_is_documented(schema):
