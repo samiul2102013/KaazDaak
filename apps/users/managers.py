@@ -8,6 +8,8 @@ class UserManager(BaseUserManager):
         if not username:
             raise ValueError("The username must be set")
         email = extra_fields.pop("email", None)
+        if email is None and extra_fields.get("phone_number") is None:
+            raise ValueError("A user must have an email or a phone number")
         if email is not None:
             email = self.normalize_email(email)
         user = self.model(username=username, email=email, **extra_fields)
