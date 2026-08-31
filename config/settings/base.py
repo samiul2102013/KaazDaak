@@ -223,6 +223,10 @@ CELERY_TIMEZONE = "UTC"
 # OTP Settings
 OTP_EXPIRY_MINUTES = 10
 OTP_MAX_ATTEMPTS = 5
+# Development-only bypass: when enabled, the fixed code bypasses the entire
+# OTP check. Keep disabled in production.
+OTP_BYPASS_ENABLED = config("OTP_BYPASS_ENABLED", default=False, cast=bool)
+OTP_BYPASS_CODE = config("OTP_BYPASS_CODE", default="123456")
 BD_PHONE_REGEX = r"^01[3-9]\d{8}$"
 
 # Email Settings
