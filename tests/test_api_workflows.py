@@ -3,8 +3,8 @@ KaazDaak API Integration Tests
 Tests all API workflows against the live server at http://74.225.251.88
 Run: pytest tests/test_api_workflows.py -v --tb=short --no-header -p no:django
 """
+
 import io
-import time
 import uuid
 
 import pytest
@@ -75,7 +75,6 @@ def make_image_bytes(name="test.png"):
     return sig + ihdr + idat + iend
 
 
-
 # ============================================================================
 # SECTION 12: System
 # ============================================================================
@@ -102,7 +101,8 @@ class TestLoginFlow:
 
     def test_login_invalid_credentials(self, base_url):
         status, body = api(
-            "POST", "/api/v1/auth/login/",
+            "POST",
+            "/api/v1/auth/login/",
             json={"identifier": "nonexistent@test.com", "password": "wrong"},
         )
         assert status == 401
@@ -146,6 +146,7 @@ class TestLoginFlow:
         assert status == 200
         success(body)
 
+
 # ============================================================================
 # SECTION 3: KaazBir Profile
 # ============================================================================
@@ -184,7 +185,9 @@ class TestKaazbirProfile:
 # SECTION 4: KYC Verification
 # ============================================================================
 class TestKYC:
-    @pytest.mark.xfail(reason="KYC requires valid image uploads; may fail with test data")
+    @pytest.mark.xfail(
+        reason="KYC requires valid image uploads; may fail with test data"
+    )
     def test_submit_kyc(self, kaazbir_session, base_url):
         img = make_image_bytes()
         status, body = api(
@@ -238,6 +241,7 @@ class TestKYC:
         )
         assert status == 403
 
+
 # ============================================================================
 # SECTIONS 4-6: Services & Catalog
 # ============================================================================
@@ -264,17 +268,13 @@ class TestServices:
 
     def test_service_not_found(self, hirer_session, base_url):
         fake_id = str(uuid.uuid4())
-        status, body = api(
-            "GET", f"/api/v1/services/{fake_id}/", session=hirer_session
-        )
+        status, body = api("GET", f"/api/v1/services/{fake_id}/", session=hirer_session)
         assert status == 404
 
 
 class TestSubserviceCustomFields:
     def test_get_custom_fields(self, base_url, subservice_id):
-        status, body = api(
-            "GET", f"/api/v1/subservices/{subservice_id}/custom-fields/"
-        )
+        status, body = api("GET", f"/api/v1/subservices/{subservice_id}/custom-fields/")
         assert status == 200
         success(body)
         assert isinstance(body["data"], list)
@@ -289,7 +289,9 @@ class TestKaazbirServices:
         success(body)
         assert "services" in body["data"]
 
-    def test_update_services(self, kaazbir_session, base_url, service_id, subservice_id):
+    def test_update_services(
+        self, kaazbir_session, base_url, service_id, subservice_id
+    ):
         status, body = api(
             "POST",
             "/api/v1/kaazbir/services/",
@@ -316,6 +318,7 @@ class TestKaazbirServices:
             json={"services": []},
         )
         assert status == 403
+
 
 # ============================================================================
 # SECTION 7: Campaigns & Offers
@@ -386,12 +389,12 @@ class TestMissions:
 
     def test_mission_not_found(self, hirer_session, base_url):
         fake_id = str(uuid.uuid4())
-        status, body = api(
-            "GET", f"/api/v1/missions/{fake_id}/", session=hirer_session
-        )
+        status, body = api("GET", f"/api/v1/missions/{fake_id}/", session=hirer_session)
         assert status in (404, 500)
 
-    def test_kaazbir_cannot_create_mission(self, kaazbir_session, base_url, service_id, subservice_id):
+    def test_kaazbir_cannot_create_mission(
+        self, kaazbir_session, base_url, service_id, subservice_id
+    ):
         status, body = api(
             "POST",
             "/api/v1/missions/",
@@ -410,7 +413,9 @@ class TestMissions:
 # ============================================================================
 class TestBidding:
     @pytest.fixture(scope="class")
-    def bid_mission(self, hirer_session, kaazbir_session, base_url, service_id, subservice_id):
+    def bid_mission(
+        self, hirer_session, kaazbir_session, base_url, service_id, subservice_id
+    ):
         status, body = api(
             "POST",
             "/api/v1/missions/",
@@ -429,7 +434,9 @@ class TestBidding:
         return mission_id
 
     @pytest.fixture(scope="class")
-    def reject_mission(self, hirer_session, kaazbir_session, base_url, service_id, subservice_id):
+    def reject_mission(
+        self, hirer_session, kaazbir_session, base_url, service_id, subservice_id
+    ):
         status, body = api(
             "POST",
             "/api/v1/missions/",
@@ -447,7 +454,9 @@ class TestBidding:
         return body["data"]["id"]
 
     @pytest.fixture(scope="class")
-    def no_budget_mission(self, hirer_session, kaazbir_session, base_url, service_id, subservice_id):
+    def no_budget_mission(
+        self, hirer_session, kaazbir_session, base_url, service_id, subservice_id
+    ):
         status, body = api(
             "POST",
             "/api/v1/missions/",
@@ -475,7 +484,9 @@ class TestBidding:
         success(body)
         assert body["data"]["status"] == "interested"
 
-    def test_confirm_kaazbir(self, hirer_session, kaazbir_session, base_url, bid_mission):
+    def test_confirm_kaazbir(
+        self, hirer_session, kaazbir_session, base_url, bid_mission
+    ):
         kaazbir_id = kaazbir_session["user"]["id"]
         status, body = api(
             "POST",
@@ -498,7 +509,9 @@ class TestBidding:
         assert status == 200
         success(body)
 
-    def test_bid_without_budget_fails(self, kaazbir_session, base_url, no_budget_mission):
+    def test_bid_without_budget_fails(
+        self, kaazbir_session, base_url, no_budget_mission
+    ):
         status, body = api(
             "POST",
             f"/api/v1/missions/{no_budget_mission}/bid/",
@@ -561,7 +574,9 @@ class TestDirectOffers:
             json={"budget": 500},
         )
         assert status == 400
-        assert "order_title" in body.get("message", "").lower() or body.get("data") is None
+        assert (
+            "order_title" in body.get("message", "").lower() or body.get("data") is None
+        )
 
 
 # ============================================================================
@@ -569,9 +584,7 @@ class TestDirectOffers:
 # ============================================================================
 class TestHirerActivity:
     def test_recent_tasks(self, hirer_session, base_url):
-        status, body = api(
-            "GET", "/api/v1/hirer/tasks/recent/", session=hirer_session
-        )
+        status, body = api("GET", "/api/v1/hirer/tasks/recent/", session=hirer_session)
         assert status == 200
         success(body)
         assert isinstance(body["data"], list)
@@ -583,9 +596,7 @@ class TestHirerActivity:
         assert isinstance(body["data"], list)
 
     def test_hirer_activity_all(self, hirer_session, base_url):
-        status, body = api(
-            "GET", "/api/v1/hirer/activity/", session=hirer_session
-        )
+        status, body = api("GET", "/api/v1/hirer/activity/", session=hirer_session)
         assert status == 200
         success(body)
         assert isinstance(body["data"], list)
@@ -611,9 +622,7 @@ class TestHirerActivity:
         success(body)
 
     def test_hirer_cannot_access_kaazbir_activity(self, hirer_session, base_url):
-        status, body = api(
-            "GET", "/api/v1/kaazbir/activities/", session=hirer_session
-        )
+        status, body = api("GET", "/api/v1/kaazbir/activities/", session=hirer_session)
         assert status == 403
 
 
@@ -717,9 +726,7 @@ class TestKaazbirActivity:
         assert status == 404
 
     def test_hirer_cannot_access_kaazbir_activities(self, hirer_session, base_url):
-        status, body = api(
-            "GET", "/api/v1/kaazbir/activities/", session=hirer_session
-        )
+        status, body = api("GET", "/api/v1/kaazbir/activities/", session=hirer_session)
         assert status == 403
 
 
@@ -760,9 +767,7 @@ class TestEarningsStats:
         assert "declined" in body["data"]
 
     def test_hirer_cannot_access_earnings(self, hirer_session, base_url):
-        status, body = api(
-            "GET", "/api/v1/kaazbir/earnings/", session=hirer_session
-        )
+        status, body = api("GET", "/api/v1/kaazbir/earnings/", session=hirer_session)
         assert status == 403
 
     def test_hirer_cannot_access_stats(self, hirer_session, base_url):
@@ -786,17 +791,13 @@ class TestReviews:
         assert "total_reviews" in body["data"]
 
     def test_review_list(self, kaazbir_session, base_url):
-        status, body = api(
-            "GET", "/api/v1/kaazbir/reviews/", session=kaazbir_session
-        )
+        status, body = api("GET", "/api/v1/kaazbir/reviews/", session=kaazbir_session)
         assert status == 200
         success(body)
         assert isinstance(body["data"], list)
 
     def test_hirer_cannot_access_reviews(self, hirer_session, base_url):
-        status, body = api(
-            "GET", "/api/v1/kaazbir/reviews/", session=hirer_session
-        )
+        status, body = api("GET", "/api/v1/kaazbir/reviews/", session=hirer_session)
         assert status == 403
 
 
@@ -921,7 +922,9 @@ class TestHirerProfile:
 # SECTIONS 17-18: Missing Endpoints (expected failures)
 # ============================================================================
 class TestMissingEndpoints:
-    @pytest.mark.xfail(reason="No create-review endpoint exists (Review model has no API)")
+    @pytest.mark.xfail(
+        reason="No create-review endpoint exists (Review model has no API)"
+    )
     def test_create_review(self, hirer_session, kaazbir_session, base_url):
         mission_id = str(uuid.uuid4())
         kaazbir_id = kaazbir_session["user"]["id"]
