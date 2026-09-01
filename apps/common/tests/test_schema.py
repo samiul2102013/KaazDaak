@@ -81,7 +81,7 @@ def test_request_body_serializer_is_documented(schema):
     request_schema = _resolve_component(
         schema, login["requestBody"]["content"]["application/json"]["schema"]
     )
-    assert set(request_schema["properties"]) == {"identifier", "password"}
+    assert set(request_schema["properties"]) == {"identifier", "email", "password"}
 
 
 def test_schema_endpoints_respond(api_client):

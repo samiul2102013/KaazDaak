@@ -186,8 +186,22 @@ class ResendOTPSerializer(serializers.Serializer):
 
 
 class LoginSerializer(serializers.Serializer):
-    identifier = serializers.CharField()
+    identifier = serializers.CharField(
+        required=False,
+        help_text="Email, username, or BD phone number.",
+    )
+    email = serializers.EmailField(
+        required=False,
+        help_text="Alternative to 'identifier'. Email, username, or BD phone.",
+    )
     password = serializers.CharField(style={"input_type": "password"})
+
+    def validate(self, attrs):
+        identifier = attrs.get("identifier") or attrs.get("email")
+        if not identifier:
+            raise serializers.ValidationError({"identifier": "This field is required."})
+        attrs["identifier"] = identifier
+        return attrs
 
 
 class KYCSubmitSerializer(serializers.Serializer):
