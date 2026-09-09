@@ -160,6 +160,7 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "otp_resend": "3/hour",
         "login": "10/minute",
+        "password_reset": "3/hour",
     },
 }
 

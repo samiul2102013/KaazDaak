@@ -17,6 +17,7 @@ from apps.common.responses import success_response
 from .models import User
 from .permissions import IsKaazbir
 from .serializers import (
+    ForgotPasswordSerializer,
     HirerRegisterSerializer,
     KaazbirProfileDetailSerializer,
     KaazbirProfileUpdateSerializer,
@@ -24,6 +25,7 @@ from .serializers import (
     KYCSubmitSerializer,
     LoginSerializer,
     ResendOTPSerializer,
+    ResetPasswordSerializer,
     UserSerializer,
     VerifyEmailSerializer,
 )
@@ -194,6 +196,88 @@ class ResendOTPView(APIView):
         AuthService.generate_and_send_otp(user)
         return success_response(
             message="OTP resent successfully.",
+        )
+
+
+class ForgotPasswordView(APIView):
+    permission_classes = [AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "password_reset"
+    schema_skip_auth = True
+    tags = [SECTION_TAGS["users-auth"]]
+    request_serializer = ForgotPasswordSerializer
+    response_serializer = inline_serializer(
+        "ForgotPasswordResponse", fields={"message": serializers.CharField()}
+    )
+
+    def post(self, request):
+        serializer = ForgotPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data["email"]
+        AuthService.request_password_reset(email)
+        return success_response(
+            message="If an account exists with this email, "
+            "a password reset code has been sent.",
+        )
+
+
+class ResetPasswordView(APIView):
+    permission_classes = [AllowAny]
+    throttle_scope = None
+    schema_skip_auth = True
+    tags = [SECTION_TAGS["users-auth"]]
+    request_serializer = ResetPasswordSerializer
+    response_serializer = inline_serializer(
+        "ResetPasswordResponse", fields={"message": serializers.CharField()}
+    )
+
+    def post(self, request):
+        serializer = ResetPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data["email"]
+        otp_code = serializer.validated_data["otp_code"]
+        new_password = serializer.validated_data["new_password"]
+        try:
+            user = User.objects.get(email__iexact=email)
+        except User.DoesNotExist:
+            return Response(
+                {
+                    "success": False,
+                    "error": {"otp_code": "Invalid or expired OTP"},
+                    "message": "Invalid or expired OTP",
+                    "status_code": status.HTTP_400_BAD_REQUEST,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        otp_qs = user.otps.filter(purpose="password_reset", is_used=False).order_by(
+            "-created_at"
+        )
+        latest_otp = otp_qs.first()
+        if latest_otp and latest_otp.attempts >= settings.OTP_MAX_ATTEMPTS:
+            return Response(
+                {
+                    "success": False,
+                    "error": {
+                        "otp_code": "Maximum attempts exceeded. " "Request a new OTP."
+                    },
+                    "message": "Maximum attempts exceeded. Request a new OTP.",
+                    "status_code": status.HTTP_429_TOO_MANY_REQUESTS,
+                },
+                status=status.HTTP_429_TOO_MANY_REQUESTS,
+            )
+        reset = AuthService.reset_password(email, otp_code, new_password)
+        if not reset:
+            return Response(
+                {
+                    "success": False,
+                    "error": {"otp_code": "Invalid or expired OTP"},
+                    "message": "Invalid or expired OTP",
+                    "status_code": status.HTTP_400_BAD_REQUEST,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return success_response(
+            message="Password reset successfully.",
         )
 
 

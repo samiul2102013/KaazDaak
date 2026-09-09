@@ -129,7 +129,10 @@ class OTP(TimestampedModel):
     code_hash = models.CharField(max_length=255)
     purpose = models.CharField(
         max_length=30,
-        choices=[("email_verification", "Email verification")],
+        choices=[
+            ("email_verification", "Email verification"),
+            ("password_reset", "Password reset"),
+        ],
         default="email_verification",
     )
     attempts = models.PositiveSmallIntegerField(default=0)

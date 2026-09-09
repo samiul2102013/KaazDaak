@@ -185,6 +185,42 @@ class ResendOTPSerializer(serializers.Serializer):
         return value.lower()
 
 
+class ForgotPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate_email(self, value):
+        return value.lower()
+
+
+class ResetPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    otp_code = serializers.CharField(max_length=6, min_length=6)
+    new_password = serializers.CharField(
+        write_only=True, style={"input_type": "password"}
+    )
+    confirm_password = serializers.CharField(
+        write_only=True, style={"input_type": "password"}
+    )
+
+    def validate_email(self, value):
+        return value.lower()
+
+    def validate_new_password(self, value):
+        try:
+            validate_password(value)
+        except django_exceptions.ValidationError as e:
+            raise serializers.ValidationError(list(e.messages))
+        return value
+
+    def validate(self, attrs):
+        if attrs.get("new_password") != attrs.get("confirm_password"):
+            raise serializers.ValidationError(
+                {"confirm_password": "Passwords do not match."}
+            )
+        attrs.pop("confirm_password")
+        return attrs
+
+
 class LoginSerializer(serializers.Serializer):
     identifier = serializers.CharField(
         required=False,

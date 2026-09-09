@@ -43,6 +43,28 @@ def _generate_otp_code():
     return f"{random.randint(0, 999999):06d}"
 
 
+def _send_otp_email(user, code, purpose, subject, message):
+    try:
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+            fail_silently=False,
+        )
+        logger.info(
+            "OTP sent to user %s (purpose=%s)",
+            user.username,
+            purpose,
+        )
+    except Exception as e:
+        logger.error(
+            "Failed to send OTP email to user %s: %s",
+            user.username,
+            str(e),
+        )
+
+
 class AuthService:
     @staticmethod
     @transaction.atomic
@@ -99,29 +121,98 @@ class AuthService:
             purpose="email_verification",
             expires_at=expires_at,
         )
+        _send_otp_email(
+            user,
+            code,
+            "email_verification",
+            "Your OTP Code for Email Verification",
+            (
+                f"Hello {user.full_name},\n\n"
+                f"Your OTP code for email verification is: {code}\n"
+                f"This code expires in {settings.OTP_EXPIRY_MINUTES} "
+                "minutes.\n\n"
+                f"If you did not request this, please ignore this email."
+            ),
+        )
+
+    @staticmethod
+    def request_password_reset(email):
         try:
-            send_mail(
-                subject="Your OTP Code for Email Verification",
-                message=(
-                    f"Hello {user.full_name},\n\n"
-                    f"Your OTP code for email verification is: {code}\n"
-                    f"This code expires in {settings.OTP_EXPIRY_MINUTES} minutes.\n\n"
-                    f"If you did not request this, please ignore this email."
-                ),
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
-                fail_silently=False,
+            user = User.objects.get(email__iexact=email)
+        except User.DoesNotExist:
+            return
+        code = _generate_otp_code()
+        hashed = _hash_otp(code)
+        expires_at = timezone.now() + timezone.timedelta(
+            minutes=settings.OTP_EXPIRY_MINUTES
+        )
+        OTP.objects.create(
+            user=user,
+            code_hash=hashed,
+            purpose="password_reset",
+            expires_at=expires_at,
+        )
+        _send_otp_email(
+            user,
+            code,
+            "password_reset",
+            "Your Password Reset Code",
+            (
+                f"Hello {user.full_name},\n\n"
+                f"Your password reset code is: {code}\n"
+                f"This code expires in {settings.OTP_EXPIRY_MINUTES} "
+                "minutes.\n\n"
+                f"If you did not request this, please ignore this email."
+            ),
+        )
+
+    @staticmethod
+    def reset_password(email, otp_code, new_password):
+        try:
+            user = User.objects.get(email__iexact=email)
+        except User.DoesNotExist:
+            logger.warning("No user found for password reset: %s", email)
+            return False
+        otp_qs = OTP.objects.filter(
+            user=user,
+            purpose="password_reset",
+            is_used=False,
+        ).order_by("-created_at")
+        otp = otp_qs.first()
+        if otp is None:
+            logger.warning(
+                "No active password reset OTP found for user %s",
+                user.username,
             )
+            return False
+        if otp.is_expired():
+            logger.warning("Expired password reset OTP used for user %s", user.username)
+            return False
+        if otp.attempts >= settings.OTP_MAX_ATTEMPTS:
+            logger.warning(
+                "Max password reset attempts reached for user %s",
+                user.username,
+            )
+            return False
+        otp.attempts += 1
+        otp.save(update_fields=["attempts"])
+        stored_hash = otp.code_hash
+        if not _constant_time_compare(stored_hash, _hash_otp(otp_code)):
             logger.info(
-                "OTP sent to user %s (purpose=email_verification)",
+                "Incorrect password reset attempt %d for user %s",
+                otp.attempts,
                 user.username,
             )
-        except Exception as e:
-            logger.error(
-                "Failed to send OTP email to user %s: %s",
-                user.username,
-                str(e),
-            )
+            return False
+        otp.is_used = True
+        otp.save(update_fields=["is_used"])
+        user.set_password(new_password)
+        user.save(update_fields=["password"])
+        logger.info(
+            "Password reset for user %s (OTP validated)",
+            user.username,
+        )
+        return True
 
     @staticmethod
     def verify_otp(user, code):
