@@ -1,11 +1,36 @@
+import os
+
 import pytest
 import requests
 
-BASE_URL = "http://74.225.251.88"
-HIRER_EMAIL = "sam@example.com"
-HIRER_PASSWORD = "Change password: Sam"
-KAAZBIR_EMAIL = "shamiulhasan423@gmail.com"
-KAAZBIR_PASSWORD = "Enter a new password for the user shamiulhasan423."
+BASE_URL = os.getenv("LIVE_API_BASE_URL", "http://74.225.251.88")
+HIRER_EMAIL = os.getenv("LIVE_HIRER_EMAIL", "sam@example.com")
+HIRER_PASSWORD = os.getenv("LIVE_HIRER_PASSWORD", "Change password: Sam")
+KAAZBIR_EMAIL = os.getenv("LIVE_KAAZBIR_EMAIL", "shamiulhasan423@gmail.com")
+KAAZBIR_PASSWORD = os.getenv(
+    "LIVE_KAAZBIR_PASSWORD",
+    "Enter a new password for the user shamiulhasan423.",
+)
+
+# These are live-server integration tests. They need real seeded accounts on
+# a running deployment, so they are skipped unless explicitly enabled:
+#   RUN_LIVE_TESTS=true pytest tests/test_api_workflows.py
+RUN_LIVE_TESTS = os.getenv("RUN_LIVE_TESTS", "false").strip().lower() in {
+    "1",
+    "true",
+    "yes",
+}
+
+
+def pytest_collection_modifyitems(config, items):
+    if RUN_LIVE_TESTS:
+        return
+    skip_mark = pytest.mark.skip(
+        reason="Live API tests disabled; set RUN_LIVE_TESTS=true to enable"
+    )
+    for item in items:
+        if item.fspath.basename == "test_api_workflows.py":
+            item.add_marker(skip_mark)
 
 
 @pytest.fixture(scope="session")

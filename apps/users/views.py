@@ -5,7 +5,6 @@ from drf_spectacular.utils import inline_serializer
 from rest_framework import serializers, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -13,6 +12,7 @@ from rest_framework_simplejwt.views import TokenRefreshView as SimpleJWTTokenRef
 
 from apps.common.api_spec import SECTION_TAGS
 from apps.common.responses import success_response
+from apps.common.throttling import EnvScopedRateThrottle
 
 from .models import User
 from .permissions import IsKaazbir
@@ -170,7 +170,7 @@ class VerifyEmailView(APIView):
 
 class ResendOTPView(APIView):
     permission_classes = [AllowAny]
-    throttle_classes = [ScopedRateThrottle]
+    throttle_classes = [EnvScopedRateThrottle]
     throttle_scope = "otp_resend"
     schema_skip_auth = True
     tags = [SECTION_TAGS["users-auth"]]
@@ -201,6 +201,7 @@ class ResendOTPView(APIView):
 
 class ForgotPasswordView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes = [EnvScopedRateThrottle]
     throttle_scope = "password_reset"
     schema_skip_auth = True
     tags = [SECTION_TAGS["users-auth"]]
@@ -282,7 +283,7 @@ class ResetPasswordView(APIView):
 
 class LoginView(APIView):
     permission_classes = [AllowAny]
-    throttle_classes = [ScopedRateThrottle]
+    throttle_classes = [EnvScopedRateThrottle]
     throttle_scope = "login"
     schema_skip_auth = True
     tags = [SECTION_TAGS["users-auth"]]

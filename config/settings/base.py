@@ -155,7 +155,7 @@ REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "apps.common.exceptions.custom_exception_handler",
     "DEFAULT_SCHEMA_CLASS": "apps.common.schema.EnvelopeAutoSchema",
     "DEFAULT_THROTTLE_CLASSES": [
-        "rest_framework.throttling.ScopedRateThrottle",
+        "apps.common.throttling.EnvScopedRateThrottle",
     ],
     "DEFAULT_THROTTLE_RATES": {
         "otp_resend": "3/hour",
@@ -163,6 +163,22 @@ REST_FRAMEWORK = {
         "password_reset": "3/hour",
     },
 }
+
+# Rate limiting is managed from .env: THROTTLE_ENABLED=False turns every
+# scoped throttle into a no-op; THROTTLE_RATES overrides per-scope rates,
+# e.g. THROTTLE_RATES=login=5/minute,otp_resend=10/hour
+THROTTLE_ENABLED = config("THROTTLE_ENABLED", default=True, cast=bool)
+THROTTLE_RATES = {
+    "otp_resend": "3/hour",
+    "login": "10/minute",
+    "password_reset": "3/hour",
+}
+_throttle_rates_env = config("THROTTLE_RATES", default="").strip()
+if _throttle_rates_env:
+    for _pair in _throttle_rates_env.split(","):
+        _scope, _, _rate = _pair.partition("=")
+        if _scope.strip() and _rate.strip():
+            THROTTLE_RATES[_scope.strip()] = _rate.strip()
 
 # drf-spectacular (OpenAPI schema + docs)
 SPECTACULAR_SETTINGS = {

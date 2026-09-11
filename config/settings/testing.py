@@ -25,3 +25,7 @@ CELERY_TASK_ALWAYS_EAGER = True
 PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.MD5PasswordHasher",
 ]
+
+# Do not let throttle state leak between tests; the throttle behavior itself
+# is unit-tested in apps/common/tests/test_throttling.py with override_settings.
+THROTTLE_ENABLED = True
