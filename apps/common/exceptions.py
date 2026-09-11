@@ -1,3 +1,4 @@
+from rest_framework.exceptions import Throttled
 from rest_framework.views import exception_handler
 
 
@@ -25,6 +26,9 @@ def custom_exception_handler(exc, context):
     response = exception_handler(exc, context)
     if response is not None:
         error_data = response.data
+        if isinstance(exc, Throttled) and exc.wait is not None:
+            error_data = {"detail": f"Too many requests. Try {exc.wait} seconds later."}
+            response.data = error_data
         response.data = {
             "success": False,
             "error": error_data,

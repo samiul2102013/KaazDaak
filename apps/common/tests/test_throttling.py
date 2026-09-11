@@ -2,8 +2,10 @@ import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.core.cache import cache
 from django.test import override_settings
+from rest_framework.exceptions import Throttled
 from rest_framework.test import APIRequestFactory
 
+from apps.common.exceptions import custom_exception_handler
 from apps.common.throttling import EnvScopedRateThrottle
 
 
@@ -53,3 +55,15 @@ def test_enabled_throttle_enforces_scope_rate():
 def test_enabled_throttle_skips_views_without_scope():
     throttle = EnvScopedRateThrottle()
     assert throttle.allow_request(_request(), object()) is True
+
+
+def test_throttled_error_message_includes_wait_seconds():
+    exception = Throttled(wait=54)
+    response = custom_exception_handler(exception, {})
+
+    assert response.status_code == 429
+    assert response.data["message"] == "Too many requests. Try 54 seconds later."
+    assert response.data["error"] == {
+        "detail": "Too many requests. Try 54 seconds later."
+    }
+    assert response.data["success"] is False
