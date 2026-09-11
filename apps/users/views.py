@@ -201,7 +201,6 @@ class ResendOTPView(APIView):
 
 class ForgotPasswordView(APIView):
     permission_classes = [AllowAny]
-    throttle_classes = [ScopedRateThrottle]
     throttle_scope = "password_reset"
     schema_skip_auth = True
     tags = [SECTION_TAGS["users-auth"]]
