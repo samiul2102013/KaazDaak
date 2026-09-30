@@ -6,9 +6,11 @@ from .views import (
     HirerMediaView,
     HirerNotificationSettingsView,
     HirerProfilePictureView,
+    NiyokdataProfileView,
 )
 
 urlpatterns = [
+    path("profile/", NiyokdataProfileView.as_view(), name="niyokdata-profile"),
     path("profile/basic-info/", HirerBasicInfoView.as_view(), name="hirer-basic-info"),
     path("profile/media/", HirerMediaView.as_view(), name="hirer-media"),
     path(

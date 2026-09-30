@@ -90,7 +90,7 @@ SECTIONS = {
         "Hirer Profiles & Media",
         "Hirer (employer) profile, media, profile picture and notification "
         "settings.",
-        ("hirer.HirerProfile", "hirer.HirerMedia"),
+        ("users.HirerProfile", "users.HirerMedia"),
     ),
     "system": ApiSection(
         12,

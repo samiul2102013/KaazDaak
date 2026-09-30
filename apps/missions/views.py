@@ -318,8 +318,8 @@ class ChatOfferView(APIView):
     def post(self, request, pk):
         from apps.users.models import User
 
-        kaazbir = User.objects.filter(pk=pk, role="kaazbir").first()
-        if not kaazbir:
+        kaazbir = User.objects.filter(pk=pk).first()
+        if not kaazbir or not kaazbir.has_role("kaazbir"):
             return success_response(
                 data=None,
                 message="Kaazbir not found.",
@@ -427,7 +427,7 @@ class CategoryKasbirsView(APIView):
 
         kaazbirs = (
             User.objects.filter(
-                role="kaazbir",
+                models.Q(role="kaazbir") | models.Q(kaazbir_profile__isnull=False),
                 kasbir_services__service_id=pk,
                 is_active=True,
             )
@@ -504,7 +504,7 @@ class KasbirListView(APIView):
 
         kaazbirs = (
             User.objects.filter(
-                role="kaazbir",
+                models.Q(role="kaazbir") | models.Q(kaazbir_profile__isnull=False),
                 kasbir_services__service_id=service_id,
                 is_active=True,
             )
@@ -567,7 +567,10 @@ class KasbirAvailableView(APIView):
         subservice_id = request.query_params.get("subservice_id")
 
         base_qs = (
-            User.objects.filter(role="kaazbir", is_active=True)
+            User.objects.filter(
+                models.Q(role="kaazbir") | models.Q(kaazbir_profile__isnull=False),
+                is_active=True,
+            )
             .select_related("kaazbir_profile")
             .prefetch_related("reviews_received", "missions_assigned")
         )
@@ -649,7 +652,10 @@ class KasbirSearchView(APIView):
         max_rate = request.query_params.get("max_rate")
 
         base_qs = (
-            User.objects.filter(role="kaazbir", is_active=True)
+            User.objects.filter(
+                models.Q(role="kaazbir") | models.Q(kaazbir_profile__isnull=False),
+                is_active=True,
+            )
             .select_related("kaazbir_profile")
             .prefetch_related("reviews_received", "missions_assigned")
         )

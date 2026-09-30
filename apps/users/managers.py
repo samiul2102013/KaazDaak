@@ -12,6 +12,9 @@ class UserManager(BaseUserManager):
             raise ValueError("A user must have an email or a phone number")
         if email is not None:
             email = self.normalize_email(email)
+        extra_fields.setdefault("role", "hirer")
+        if not extra_fields.get("roles"):
+            extra_fields["roles"] = [extra_fields["role"]]
         user = self.model(username=username, email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)

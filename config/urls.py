@@ -42,7 +42,7 @@ urlpatterns = [
     path("api/v1/auth/", include("apps.users.urls")),
     path("api/v1/", include("apps.catalog.urls")),
     path("api/v1/", include("apps.missions.urls")),
-    path("api/v1/hirer/", include("apps.hirer.urls")),
+    path("api/v1/hirer/", include("apps.users.hirer_urls")),
     path(
         "api/v1/kaazbir/profile/",
         KaazbirProfileView.as_view(),

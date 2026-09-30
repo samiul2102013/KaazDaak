@@ -165,8 +165,10 @@ class MissionConfirmSerializer(serializers.Serializer):
 
     def validate_kaazbir_id(self, value):
         try:
-            User.objects.get(pk=value, role="kaazbir")
+            user = User.objects.get(pk=value)
         except User.DoesNotExist:
+            raise serializers.ValidationError("Kaazbir not found.")
+        if not user.has_role("kaazbir"):
             raise serializers.ValidationError("Kaazbir not found.")
         return value
 

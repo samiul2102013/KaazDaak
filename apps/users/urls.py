@@ -10,6 +10,7 @@ from .views import (
     LogoutView,
     ResendOTPView,
     ResetPasswordView,
+    SwitchRoleView,
     TokenRefreshView,
     VerifyEmailView,
 )
@@ -29,5 +30,6 @@ urlpatterns = [
     path("token/refresh/", TokenRefreshView.as_view(), name="token-refresh"),
     path("logout/", LogoutView.as_view(), name="auth-logout"),
     path("me/", CurrentUserView.as_view(), name="current-user"),
+    path("switch-role/", SwitchRoleView.as_view(), name="switch-role"),
     path("kyc/submit/", KYCSubmitView.as_view(), name="kyc-submit"),
 ]

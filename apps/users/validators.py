@@ -17,4 +17,18 @@ def validate_bd_phone_number(value):
 
 
 def normalize_bd_phone(value):
-    return f"+88{value}"
+    cleaned = re.sub(r"[\s\-()]", "", (value or "").strip())
+    if cleaned.startswith("+88"):
+        return cleaned
+    if cleaned.startswith("88") and len(cleaned) == 13:
+        return f"+{cleaned}"
+    return f"+88{cleaned}"
+
+
+def canonical_bd_local(value):
+    cleaned = re.sub(r"[\s\-()]", "", (value or "").strip())
+    if cleaned.startswith("+880"):
+        return "0" + cleaned[4:]
+    if cleaned.startswith("880"):
+        return "0" + cleaned[3:]
+    return cleaned

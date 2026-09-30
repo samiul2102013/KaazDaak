@@ -41,7 +41,6 @@ INSTALLED_APPS = [
     "apps.users",
     "apps.catalog",
     "apps.missions",
-    "apps.hirer",
 ]
 
 MIDDLEWARE = [
@@ -161,6 +160,7 @@ REST_FRAMEWORK = {
         "otp_resend": "3/hour",
         "login": "10/minute",
         "password_reset": "3/hour",
+        "role_switch": "10/hour",
     },
 }
 
@@ -172,6 +172,7 @@ THROTTLE_RATES = {
     "otp_resend": "3/hour",
     "login": "10/minute",
     "password_reset": "3/hour",
+    "role_switch": "10/hour",
 }
 _throttle_rates_env = config("THROTTLE_RATES", default="").strip()
 if _throttle_rates_env:

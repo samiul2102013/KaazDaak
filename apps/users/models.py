@@ -10,6 +10,10 @@ from .managers import UserManager
 
 
 class User(AbstractBaseUser, PermissionsMixin, TimestampedModel):
+    ROLE_HIRER = "hirer"
+    ROLE_KAAZBIR = "kaazbir"
+    ROLE_CHOICES = [(ROLE_HIRER, "Hirer"), (ROLE_KAAZBIR, "KaazBir")]
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     username = models.CharField(max_length=150, unique=True, db_index=True)
     email = models.EmailField(unique=True, null=True, blank=True, db_index=True)
@@ -19,8 +23,14 @@ class User(AbstractBaseUser, PermissionsMixin, TimestampedModel):
     full_name = models.CharField(max_length=255)
     role = models.CharField(
         max_length=20,
-        choices=[("hirer", "Hirer"), ("kaazbir", "KaazBir")],
-        default="hirer",
+        choices=ROLE_CHOICES,
+        help_text="Active role. One account can unlock both roles and "
+        "switch between them; this field always holds the active one.",
+    )
+    roles = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="what is the role of the user? hirer or kaazbir?",
     )
     is_email_verified = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
@@ -42,6 +52,30 @@ class User(AbstractBaseUser, PermissionsMixin, TimestampedModel):
 
     def __str__(self):
         return self.username
+
+    @property
+    def active_role(self):
+        return self.role
+
+    def has_role(self, role):
+        if self.role == role:
+            return True
+        try:
+            return role in (self.roles or [])
+        except TypeError:
+            return False
+
+    def unlock_role(self, role):
+        roles = list(self.roles or [])
+        if self.role and self.role not in roles:
+            roles.append(self.role)
+        if role not in roles:
+            roles.append(role)
+        self.roles = roles
+
+    def switch_role(self, role):
+        self.unlock_role(role)
+        self.role = role
 
 
 def kyc_file_path(instance, filename: str) -> str:
@@ -121,6 +155,53 @@ class KYCSelfie(TimestampedModel):
 
     def __str__(self):
         return f"Selfie {self.order} for {self.kyc.user.username}"
+
+
+class HirerProfile(TimestampedModel):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="hirer_profile",
+    )
+    organization_name = models.CharField(max_length=255, blank=True, default="")
+    address = models.TextField(blank=True, default="")
+    division = models.CharField(max_length=100, null=True, blank=True)
+    district = models.CharField(max_length=100, null=True, blank=True)
+    upazila = models.CharField(max_length=100, null=True, blank=True)
+    location = models.CharField(max_length=255, null=True, blank=True)
+    bio = models.TextField(blank=True, default="")
+    is_profile_complete = models.BooleanField(default=False)
+    profile_picture = models.ImageField(
+        upload_to="hirer_profiles/", blank=True, null=True
+    )
+    push_notifications = models.BooleanField(default=True)
+    sms_notifications = models.BooleanField(default=True)
+    email_notifications = models.BooleanField(default=True)
+    task_updates = models.BooleanField(default=True)
+    promotions_and_offers = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"HirerProfile: {self.user.username}"
+
+
+class HirerMedia(TimestampedModel):
+    class MediaType(models.TextChoices):
+        CERTIFICATE = "certificate", "Certificate"
+        LICENSE = "license", "License"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="hirer_media",
+    )
+    media_type = models.CharField(max_length=20, choices=MediaType.choices)
+    name = models.CharField(max_length=255)
+    picture = models.ImageField(upload_to="hirer_media/")
+
+    def __str__(self):
+        return f"{self.user.username} - {self.media_type}: {self.name}"
 
 
 class OTP(TimestampedModel):

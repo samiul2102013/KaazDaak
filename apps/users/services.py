@@ -9,8 +9,8 @@ from django.core.mail import send_mail
 from django.db import transaction
 from django.utils import timezone
 
-from .models import OTP, KaazbirProfile, User
-from .validators import normalize_bd_phone
+from .models import OTP, HirerProfile, KaazbirProfile, User
+from .validators import canonical_bd_local, normalize_bd_phone
 
 logger = logging.getLogger(__name__)
 
@@ -80,6 +80,7 @@ class AuthService:
             is_active=True,
             is_email_verified=False,
         )
+        HirerProfile.objects.get_or_create(user=user)
         AuthService.generate_and_send_otp(user)
         return user
 
@@ -258,28 +259,63 @@ class AuthService:
 
     @staticmethod
     def authenticate_by_identifier(identifier, password):
+        identifier = (identifier or "").strip()
+        if not identifier or not password:
+            return None
+        local = canonical_bd_local(identifier)
         phone_pattern = re.compile(settings.BD_PHONE_REGEX)
         user = None
-        if phone_pattern.match(identifier):
-            normalized = normalize_bd_phone(identifier)
+        if phone_pattern.match(local):
+            normalized = normalize_bd_phone(local)
             try:
                 user = User.objects.get(phone_number=normalized)
             except User.DoesNotExist:
                 return None
-            if not user.check_password(password):
+            if not user.is_active or not user.check_password(password):
                 return None
             return user
         else:
             user = authenticate(username=identifier, password=password)
             if user is not None:
-                return user
+                return user if user.is_active else None
             try:
                 user_obj = User.objects.get(email__iexact=identifier)
             except User.DoesNotExist:
                 return None
-            if user_obj.check_password(password):
-                return user_obj
-            return None
+            if not user_obj.is_active or not user_obj.check_password(password):
+                return None
+            return user_obj
+
+    @staticmethod
+    @transaction.atomic
+    def switch_active_role(user, target_role, phone_number=None):
+        target_role = (target_role or "").strip()
+        if target_role not in (User.ROLE_HIRER, User.ROLE_KAAZBIR):
+            raise ValueError("Invalid role.")
+        if target_role == User.ROLE_KAAZBIR and not user.phone_number:
+            if not phone_number:
+                raise ValueError(
+                    "A phone number is required to activate the kaazbir role."
+                )
+            from .validators import validate_bd_phone_number
+
+            local = canonical_bd_local(phone_number)
+            validate_bd_phone_number(local)
+            normalized = normalize_bd_phone(local)
+            if (
+                User.objects.filter(phone_number=normalized)
+                .exclude(pk=user.pk)
+                .exists()
+            ):
+                raise ValueError("A user with this phone number already exists.")
+            user.phone_number = normalized
+        user.switch_role(target_role)
+        user.save(update_fields=["role", "roles", "phone_number"])
+        if target_role == User.ROLE_KAAZBIR:
+            KaazbirProfileService.get_or_create_profile(user)
+        else:
+            HirerProfile.objects.get_or_create(user=user)
+        return user
 
 
 class KaazbirProfileService:
@@ -313,4 +349,29 @@ class KaazbirProfileService:
             and profile.upazila
             and profile.service_start_time
             and profile.service_end_time
+        )
+
+
+class HirerProfileService:
+    @staticmethod
+    def get_or_create_profile(user):
+        profile, _ = HirerProfile.objects.get_or_create(user=user)
+        return profile
+
+    @staticmethod
+    def update_profile(user, validated_data):
+        profile = HirerProfileService.get_or_create_profile(user)
+        for field, value in validated_data.items():
+            setattr(profile, field, value)
+        profile.is_profile_complete = HirerProfileService.is_complete(profile)
+        profile.save()
+        return profile
+
+    @staticmethod
+    def is_complete(profile):
+        return bool(
+            profile.address
+            and profile.division
+            and profile.district
+            and profile.upazila
         )

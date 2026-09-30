@@ -5,8 +5,16 @@ from rest_framework import serializers
 
 from apps.catalog.serializers import KasbirServiceSerializer
 
-from .models import OTP, KaazbirProfile, KYCSelfie, KYCVerification, User
-from .validators import normalize_bd_phone, validate_bd_phone_number
+from .models import (
+    OTP,
+    HirerMedia,
+    HirerProfile,
+    KaazbirProfile,
+    KYCSelfie,
+    KYCVerification,
+    User,
+)
+from .validators import canonical_bd_local, normalize_bd_phone, validate_bd_phone_number
 
 
 class KaazbirProfileSerializer(serializers.ModelSerializer):
@@ -75,8 +83,126 @@ class KaazbirProfileUpdateSerializer(serializers.ModelSerializer):
         ]
 
 
+class HirerProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HirerProfile
+        fields = [
+            "id",
+            "profile_picture",
+            "push_notifications",
+            "sms_notifications",
+            "email_notifications",
+            "task_updates",
+            "promotions_and_offers",
+        ]
+
+
+class NiyokdataProfileDetailSerializer(serializers.ModelSerializer):
+    full_name = serializers.CharField(source="user.full_name", read_only=True)
+    email = serializers.EmailField(source="user.email", read_only=True)
+    phone_number = serializers.CharField(
+        source="user.phone_number", read_only=True, allow_null=True
+    )
+
+    class Meta:
+        model = HirerProfile
+        fields = [
+            "id",
+            "full_name",
+            "email",
+            "phone_number",
+            "organization_name",
+            "address",
+            "division",
+            "district",
+            "upazila",
+            "location",
+            "bio",
+            "profile_picture",
+            "is_profile_complete",
+        ]
+
+
+class NiyokdataProfileUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HirerProfile
+        fields = [
+            "organization_name",
+            "address",
+            "division",
+            "district",
+            "upazila",
+            "location",
+            "bio",
+        ]
+
+
+class HirerBasicInfoSerializer(serializers.Serializer):
+    full_name = serializers.CharField(max_length=255)
+    email = serializers.EmailField()
+    phone_number = serializers.CharField(
+        max_length=20, required=False, allow_blank=True
+    )
+
+
+class HirerMediaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HirerMedia
+        fields = ["id", "media_type", "name", "picture"]
+
+
+class HirerMediaUploadSerializer(serializers.Serializer):
+    certificate_name = serializers.CharField(
+        max_length=255, required=False, allow_blank=True
+    )
+    certificate_picture = serializers.ImageField(required=False)
+    license_name = serializers.CharField(
+        max_length=255, required=False, allow_blank=True
+    )
+    license_picture = serializers.ImageField(required=False)
+
+
+class HirerProfilePictureSerializer(serializers.Serializer):
+    picture = serializers.ImageField()
+
+
+class NotificationSettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HirerProfile
+        fields = [
+            "push_notifications",
+            "sms_notifications",
+            "email_notifications",
+            "task_updates",
+            "promotions_and_offers",
+        ]
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(style={"input_type": "password"})
+    new_password = serializers.CharField(style={"input_type": "password"})
+    confirm_password = serializers.CharField(style={"input_type": "password"})
+
+    def validate_new_password(self, value):
+        try:
+            validate_password(value)
+        except django_exceptions.ValidationError as e:
+            raise serializers.ValidationError(list(e.messages))
+        return value
+
+    def validate(self, attrs):
+        if attrs.get("new_password") != attrs.get("confirm_password"):
+            raise serializers.ValidationError(
+                {"confirm_password": "Passwords do not match."}
+            )
+        return attrs
+
+
 class UserSerializer(serializers.ModelSerializer):
     kaazbir_profile = KaazbirProfileSerializer(read_only=True)
+    hirer_profile = HirerProfileSerializer(read_only=True)
+    roles = serializers.ListField(child=serializers.CharField(), read_only=True)
+    active_role = serializers.CharField(source="role", read_only=True)
 
     class Meta:
         model = User
@@ -87,13 +213,18 @@ class UserSerializer(serializers.ModelSerializer):
             "phone_number",
             "full_name",
             "role",
+            "roles",
+            "active_role",
             "is_email_verified",
             "kaazbir_profile",
+            "hirer_profile",
         ]
 
 
 class HirerRegisterSerializer(serializers.Serializer):
-    full_name = serializers.CharField(max_length=255)
+    is_hirer = serializers.BooleanField(required=False, default=True)
+    full_name = serializers.CharField(max_length=255, required=False)
+    name = serializers.CharField(max_length=255, required=False)
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True, style={"input_type": "password"})
     confirm_password = serializers.CharField(
@@ -115,6 +246,17 @@ class HirerRegisterSerializer(serializers.Serializer):
         return value.lower()
 
     def validate(self, attrs):
+        if not attrs.get("is_hirer", True):
+            raise serializers.ValidationError(
+                {"is_hirer": "This endpoint creates hirer accounts."}
+            )
+
+        full_name = attrs.get("full_name") or attrs.get("name")
+        if not full_name or not full_name.strip():
+            raise serializers.ValidationError({"full_name": "This field is required."})
+        attrs["full_name"] = full_name.strip()
+        attrs.pop("name", None)
+        attrs.pop("is_hirer", None)
         if attrs.get("password") != attrs.get("confirm_password"):
             raise serializers.ValidationError(
                 {"confirm_password": "Passwords do not match."}
@@ -124,7 +266,9 @@ class HirerRegisterSerializer(serializers.Serializer):
 
 
 class KaazbirRegisterSerializer(serializers.Serializer):
-    full_name = serializers.CharField(max_length=255)
+    is_kaazbir = serializers.BooleanField(required=False, default=True)
+    full_name = serializers.CharField(max_length=255, required=False)
+    name = serializers.CharField(max_length=255, required=False)
     email = serializers.EmailField()
     phone_number = serializers.CharField(max_length=20)
     password = serializers.CharField(write_only=True, style={"input_type": "password"})
@@ -154,14 +298,25 @@ class KaazbirRegisterSerializer(serializers.Serializer):
         return value.lower()
 
     def validate_phone_number(self, value):
-        validate_bd_phone_number(value)
-        if User.objects.filter(phone_number=normalize_bd_phone(value)).exists():
+        local = canonical_bd_local(value)
+        validate_bd_phone_number(local)
+        if User.objects.filter(phone_number=normalize_bd_phone(local)).exists():
             raise serializers.ValidationError(
                 "A user with this phone number already exists."
             )
         return value
 
     def validate(self, attrs):
+        if not attrs.get("is_kaazbir", True):
+            raise serializers.ValidationError(
+                {"is_kaazbir": "This endpoint creates kaazbir accounts."}
+            )
+        full_name = attrs.get("full_name") or attrs.get("name")
+        if not full_name or not full_name.strip():
+            raise serializers.ValidationError({"full_name": "This field is required."})
+        attrs["full_name"] = full_name.strip()
+        attrs.pop("name", None)
+        attrs.pop("is_kaazbir", None)
         if attrs.get("password") != attrs.get("confirm_password"):
             raise serializers.ValidationError(
                 {"confirm_password": "Passwords do not match."}
@@ -234,10 +389,27 @@ class LoginSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         identifier = attrs.get("identifier") or attrs.get("email")
-        if not identifier:
+        if not identifier or not str(identifier).strip():
             raise serializers.ValidationError({"identifier": "This field is required."})
-        attrs["identifier"] = identifier
+        attrs["identifier"] = str(identifier).strip()
         return attrs
+
+
+class SwitchRoleSerializer(serializers.Serializer):
+    target_role = serializers.ChoiceField(choices=["hirer", "kaazbir"])
+    phone_number = serializers.CharField(max_length=20, required=False)
+    business_name = serializers.CharField(
+        max_length=255, required=False, allow_blank=True
+    )
+    service_category = serializers.CharField(
+        max_length=100, required=False, allow_blank=True
+    )
+    address = serializers.CharField(required=False, allow_blank=True)
+
+    def validate_phone_number(self, value):
+        local = canonical_bd_local(value)
+        validate_bd_phone_number(local)
+        return value
 
 
 class KYCSubmitSerializer(serializers.Serializer):
