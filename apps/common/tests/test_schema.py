@@ -107,7 +107,8 @@ def test_operations_are_grouped_by_spec_section(schema):
         SECTION_TAGS["campaigns"]
     ]
     assert schema["paths"]["/api/v1/missions/feed/"]["get"]["tags"] == [
-        SECTION_TAGS["missions-bids"]
+        SECTION_TAGS["missions-kaazbir"],
+        SECTION_TAGS["missions-hirer"],
     ]
     assert schema["paths"]["/api/v1/kaazbir/earnings/"]["get"]["tags"] == [
         SECTION_TAGS["earnings-stats"]

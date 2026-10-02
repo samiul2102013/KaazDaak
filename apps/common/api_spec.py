@@ -66,34 +66,41 @@ SECTIONS = {
         "Current and featured campaigns and offers.",
         ("catalog.Campaign",),
     ),
-    "missions-bids": ApiSection(
+    "missions-kaazbir": ApiSection(
         8,
-        "Missions & Bids",
-        "Create, browse, bid for and confirm missions, direct offers and "
-        "mission activity.",
+        "Missions — Kaazbir",
+        "Browse the mission feed, view mission details, bid for missions and "
+        "track kaazbir activities.",
+        ("missions.Mission", "missions.MissionApplication"),
+    ),
+    "missions-hirer": ApiSection(
+        9,
+        "Missions — Hirer",
+        "Post missions, view mission details, confirm bids, send direct "
+        "offers and track hirer tasks and activity.",
         ("missions.Mission", "missions.MissionPicture", "missions.MissionApplication"),
     ),
     "reviews": ApiSection(
-        9,
+        10,
         "Reviews",
         "Kaazbir review ratings and lists.",
         ("missions.Review",),
     ),
     "earnings-stats": ApiSection(
-        10,
+        11,
         "Earnings & Stats",
         "Kaazbir earnings and acceptance-ratio statistics.",
         ("missions.Earning",),
     ),
     "hirer-profiles": ApiSection(
-        11,
+        12,
         "Hirer Profiles & Media",
         "Hirer (employer) profile, media, profile picture and notification "
         "settings.",
         ("hirer.HirerProfile", "hirer.HirerMedia"),
     ),
     "system": ApiSection(
-        12,
+        13,
         "System",
         "Infrastructure endpoints such as health checks.",
         (),

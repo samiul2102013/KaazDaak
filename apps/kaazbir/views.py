@@ -133,7 +133,7 @@ _kasbir_card_response = inline_serializer(
 
 class MissionBidView(APIView):
     permission_classes = [IsAuthenticated, IsKaazbir]
-    tags = [SECTION_TAGS["missions-bids"]]
+    tags = [SECTION_TAGS["missions-kaazbir"]]
     request_serializer = MissionBidSerializer
     response_serializer = inline_serializer(
         "MissionBidResponse",
@@ -496,7 +496,7 @@ class KasbirSearchView(APIView):
 
 
 @extend_schema(
-    tags=[SECTION_TAGS["missions-bids"]],
+    tags=[SECTION_TAGS["missions-kaazbir"]],
     parameters=[
         OpenApiParameter(
             "status",
@@ -507,7 +507,7 @@ class KasbirSearchView(APIView):
 )
 class KaazbirActivityListView(APIView):
     permission_classes = [IsAuthenticated, IsKaazbir]
-    tags = [SECTION_TAGS["missions-bids"]]
+    tags = [SECTION_TAGS["missions-kaazbir"]]
     response_serializer = KaazbirActivitySerializer
     response_many = True
 
@@ -541,7 +541,7 @@ class KaazbirActivityListView(APIView):
 
 class KaazbirActivityDetailView(APIView):
     permission_classes = [IsAuthenticated, IsKaazbir]
-    tags = [SECTION_TAGS["missions-bids"]]
+    tags = [SECTION_TAGS["missions-kaazbir"]]
     response_serializer = KaazbirActivityDetailSerializer
 
     def get(self, request, pk):
@@ -648,7 +648,7 @@ class KaazbirEarningsView(APIView):
 
 class KaazbirAcceptanceRatioView(APIView):
     permission_classes = [IsAuthenticated, IsKaazbir]
-    tags = [SECTION_TAGS["missions-bids"]]
+    tags = [SECTION_TAGS["missions-kaazbir"]]
     response_serializer = inline_serializer(
         "AcceptanceRatioResponse",
         fields={

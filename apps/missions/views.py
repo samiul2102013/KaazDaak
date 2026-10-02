@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 class MissionCreateView(APIView):
     permission_classes = [IsAuthenticated, IsHirer]
     parser_classes = [MultiPartParser, FormParser]
-    tags = [SECTION_TAGS["missions-bids"]]
+    tags = [SECTION_TAGS["missions-hirer"]]
     request_serializer = MissionCreateSerializer
     response_serializer = {
         status.HTTP_201_CREATED: inline_serializer(
@@ -65,7 +65,7 @@ class MissionCreateView(APIView):
 
 class HirerRecentTasksView(APIView):
     permission_classes = [IsAuthenticated, IsHirer]
-    tags = [SECTION_TAGS["missions-bids"]]
+    tags = [SECTION_TAGS["missions-hirer"]]
     response_serializer = inline_serializer(
         "HirerRecentTaskResponse",
         many=True,
@@ -105,7 +105,7 @@ class HirerRecentTasksView(APIView):
 
 
 @extend_schema(
-    tags=[SECTION_TAGS["missions-bids"]],
+    tags=[SECTION_TAGS["missions-kaazbir"], SECTION_TAGS["missions-hirer"]],
     parameters=[
         OpenApiParameter("service_id", str, description="Filter by service UUID"),
         OpenApiParameter("subservice_id", str, description="Filter by subservice UUID"),
@@ -113,7 +113,7 @@ class HirerRecentTasksView(APIView):
 )
 class MissionListView(APIView):
     permission_classes = [IsAuthenticated]
-    tags = [SECTION_TAGS["missions-bids"]]
+    tags = [SECTION_TAGS["missions-kaazbir"], SECTION_TAGS["missions-hirer"]]
     response_serializer = inline_serializer(
         "PaginatedMissionFeedResponse",
         fields={
@@ -152,7 +152,7 @@ class MissionListView(APIView):
 
 class MissionDetailView(APIView):
     permission_classes = [IsAuthenticated]
-    tags = [SECTION_TAGS["missions-bids"]]
+    tags = [SECTION_TAGS["missions-kaazbir"], SECTION_TAGS["missions-hirer"]]
     response_serializer = MissionSerializer
 
     def get(self, request, pk):
@@ -169,7 +169,7 @@ class MissionDetailView(APIView):
 
 class MissionConfirmView(APIView):
     permission_classes = [IsAuthenticated, IsHirer]
-    tags = [SECTION_TAGS["missions-bids"]]
+    tags = [SECTION_TAGS["missions-hirer"]]
     request_serializer = MissionConfirmSerializer
     response_serializer = inline_serializer(
         "MissionConfirmResponse",
@@ -222,7 +222,7 @@ class MissionConfirmView(APIView):
 
 class ChatOfferView(APIView):
     permission_classes = [IsAuthenticated, IsHirer]
-    tags = [SECTION_TAGS["missions-bids"]]
+    tags = [SECTION_TAGS["missions-hirer"]]
     request_serializer = inline_serializer(
         "ChatOfferBody",
         fields={
@@ -293,7 +293,7 @@ class ChatOfferView(APIView):
 
 
 @extend_schema(
-    tags=[SECTION_TAGS["missions-bids"]],
+    tags=[SECTION_TAGS["missions-hirer"]],
     parameters=[
         OpenApiParameter(
             "status",
@@ -304,7 +304,7 @@ class ChatOfferView(APIView):
 )
 class HirerActivityView(APIView):
     permission_classes = [IsAuthenticated, IsHirer]
-    tags = [SECTION_TAGS["missions-bids"]]
+    tags = [SECTION_TAGS["missions-hirer"]]
     response_serializer = HirerActivitySerializer
     response_many = True
 
@@ -337,7 +337,7 @@ class HirerActivityView(APIView):
 
 class TaskMineView(APIView):
     permission_classes = [IsAuthenticated, IsHirer]
-    tags = [SECTION_TAGS["missions-bids"]]
+    tags = [SECTION_TAGS["missions-hirer"]]
     response_serializer = inline_serializer(
         "TaskMineResponse",
         many=True,
