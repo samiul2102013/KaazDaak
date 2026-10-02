@@ -37,12 +37,25 @@ HIRER_MEDIA_COLUMNS = [
     "picture",
 ]
 
+# Static SQL literals for non-nullable columns that only exist in the new
+# schema. Used when the legacy table predates them (e.g. still on the
+# original ``0001`` schema); portable across PostgreSQL and SQLite.
+COLUMN_FALLBACKS = {
+    "organization_name": "''",
+    "address": "''",
+    "bio": "''",
+    "is_profile_complete": "FALSE",
+}
+
 
 def copy_hirer_data(apps, schema_editor):
     """Copy rows from the legacy ``hirer`` tables into the new ``users`` ones.
 
-    Runs after the new tables are created. Skips gracefully on fresh
-    databases where the legacy tables were never created.
+    Runs after the new tables are created. Copies only the columns that
+    actually exist in the legacy table: production databases may still be on
+    the original ``0001`` schema (without the Niyokdata fields), in which
+    case the newer columns keep their model defaults. Skips gracefully on
+    fresh databases where the legacy tables were never created.
     """
     tables = set(schema_editor.connection.introspection.table_names())
     quote_name = schema_editor.connection.ops.quote_name
@@ -54,12 +67,28 @@ def copy_hirer_data(apps, schema_editor):
         for old_table, new_table, columns in pairs:
             if old_table not in tables or new_table not in tables:
                 continue
-            collist = ", ".join(quote_name(c) for c in columns)
+            old_columns = {
+                field.name
+                for field in schema_editor.connection.introspection.get_table_description(  # noqa: E501
+                    cursor, old_table
+                )
+            }
+            insert_cols = [
+                c for c in columns if c in old_columns or c in COLUMN_FALLBACKS
+            ]
+            if "id" not in insert_cols or "user_id" not in insert_cols:
+                continue
+            select_cols = [
+                quote_name(c) if c in old_columns else COLUMN_FALLBACKS[c]
+                for c in insert_cols
+            ]
+            collist = ", ".join(quote_name(c) for c in insert_cols)
+            sellist = ", ".join(select_cols)
             # All identifiers here are static migration constants,
             # never user input.
             nt, ot = quote_name(new_table), quote_name(old_table)
             query = "INSERT INTO {} ({}) SELECT {} FROM {}".format(  # nosec B608  # noqa: E501
-                nt, collist, collist, ot
+                nt, collist, sellist, ot
             )
             cursor.execute(query)
 
