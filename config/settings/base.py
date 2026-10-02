@@ -197,9 +197,15 @@ SPECTACULAR_SETTINGS = {
 }
 
 # JWT Configuration
+# Lifetimes are env-driven so session length can be tuned without a deploy.
+# Defaults preserve the historical behavior (15-minute access, 7-day refresh).
+ACCESS_TOKEN_LIFETIME_MINUTES = config(
+    "ACCESS_TOKEN_LIFETIME_MINUTES", default=15, cast=int
+)
+REFRESH_TOKEN_LIFETIME_DAYS = config("REFRESH_TOKEN_LIFETIME_DAYS", default=7, cast=int)
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=ACCESS_TOKEN_LIFETIME_MINUTES),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=REFRESH_TOKEN_LIFETIME_DAYS),
     "ROTATE_REFRESH_TOKENS": False,
     "BLACKLIST_AFTER_ROTATION": False,
     "UPDATE_LAST_LOGIN": False,
