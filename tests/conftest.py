@@ -43,7 +43,7 @@ def hirer_session(base_url):
     s = requests.Session()
     resp = s.post(
         f"{base_url}/api/v1/auth/login/",
-        json={"identifier": HIRER_EMAIL, "password": HIRER_PASSWORD},
+        json={"email": HIRER_EMAIL, "password": HIRER_PASSWORD},
     )
     assert resp.status_code == 200, f"Hirer login failed: {resp.text}"
     body = resp.json()
@@ -60,7 +60,7 @@ def kaazbir_session(base_url):
     s = requests.Session()
     resp = s.post(
         f"{base_url}/api/v1/auth/login/",
-        json={"identifier": KAAZBIR_EMAIL, "password": KAAZBIR_PASSWORD},
+        json={"email": KAAZBIR_EMAIL, "password": KAAZBIR_PASSWORD},
     )
     assert resp.status_code == 200, f"Kaazbir login failed: {resp.text}"
     body = resp.json()

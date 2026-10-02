@@ -58,7 +58,7 @@ class TestLogin:
         response = api_client.post(
             self.LOGIN_URL,
             {
-                "identifier": verified_hirer_user.email,
+                "email": verified_hirer_user.email,
                 "password": "testpass123",
             },
             format="json",
@@ -75,7 +75,7 @@ class TestLogin:
         response = api_client.post(
             self.LOGIN_URL,
             {
-                "identifier": "01712345678",
+                "email": "01712345678",
                 "password": "testpass123",
             },
             format="json",
@@ -89,7 +89,7 @@ class TestLogin:
         response = api_client.post(
             self.LOGIN_URL,
             {
-                "identifier": verified_hirer_user.email,
+                "email": verified_hirer_user.email,
                 "password": "wrongpassword",
             },
             format="json",
@@ -102,7 +102,7 @@ class TestLogin:
         response = api_client.post(
             self.LOGIN_URL,
             {
-                "identifier": "ghost@example.com",
+                "email": "ghost@example.com",
                 "password": "anypass",
             },
             format="json",
@@ -114,7 +114,7 @@ class TestLogin:
         response = api_client.post(
             self.LOGIN_URL,
             {
-                "identifier": unverified_user.email,
+                "email": unverified_user.email,
                 "password": "testpass123",
             },
             format="json",
@@ -135,7 +135,7 @@ class TestLogin:
         response = api_client.post(
             self.LOGIN_URL,
             {
-                "identifier": verified_hirer_user.email,
+                "email": verified_hirer_user.email,
                 "password": "",
             },
             format="json",

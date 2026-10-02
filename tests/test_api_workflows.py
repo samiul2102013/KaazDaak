@@ -103,7 +103,7 @@ class TestLoginFlow:
         status, body = api(
             "POST",
             "/api/v1/auth/login/",
-            json={"identifier": "nonexistent@test.com", "password": "wrong"},
+            json={"email": "nonexistent@test.com", "password": "wrong"},
         )
         assert status == 401
         error(body)

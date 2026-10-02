@@ -188,25 +188,16 @@ class ResetPasswordSerializer(serializers.Serializer):
 
 
 class LoginSerializer(serializers.Serializer):
-    identifier = serializers.CharField(
-        required=False,
-        allow_blank=True,
-        help_text="Email, username, or BD phone number.",
-    )
     email = serializers.CharField(
-        required=False,
-        allow_blank=True,
-        help_text="Alternative to 'identifier'. Email, username, or BD phone.",
+        help_text="Email, username, or BD phone number.",
     )
     password = serializers.CharField(style={"input_type": "password"})
 
     def validate(self, attrs):
-        identifier = (attrs.get("identifier") or "").strip() or (
-            attrs.get("email") or ""
-        ).strip()
-        if not identifier:
-            raise serializers.ValidationError({"identifier": "This field is required."})
-        attrs["identifier"] = identifier
+        email = (attrs.get("email") or "").strip()
+        if not email:
+            raise serializers.ValidationError({"email": "This field is required."})
+        attrs["email"] = email
         return attrs
 
 

@@ -298,7 +298,7 @@ class LoginView(APIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        identifier = serializer.validated_data["identifier"]
+        identifier = serializer.validated_data["email"]
         password = serializer.validated_data["password"]
 
         user = AuthService.authenticate_by_identifier(identifier, password)
