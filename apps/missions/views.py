@@ -156,11 +156,20 @@ class MissionDetailView(APIView):
     response_serializer = MissionSerializer
 
     def get(self, request, pk):
-        mission = (
-            Mission.objects.select_related("hirer", "kaazbir", "service", "subservice")
-            .prefetch_related("pictures", "reviews")
-            .get(pk=pk)
-        )
+        try:
+            mission = (
+                Mission.objects.select_related(
+                    "hirer", "kaazbir", "service", "subservice"
+                )
+                .prefetch_related("pictures", "reviews")
+                .get(pk=pk)
+            )
+        except Mission.DoesNotExist:
+            return success_response(
+                data=None,
+                message="Mission not found.",
+                status=status.HTTP_404_NOT_FOUND,
+            )
         serializer = MissionSerializer(mission, context={"request": request})
         return success_response(
             data=serializer.data, message="Mission fetched successfully."
