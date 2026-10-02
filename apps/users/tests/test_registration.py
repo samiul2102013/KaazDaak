@@ -3,7 +3,8 @@ from django.core import mail
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from apps.users.models import KaazbirProfile, User
+from apps.kaazbir.models import KaazbirProfile
+from apps.users.models import User
 from apps.users.validators import normalize_bd_phone
 
 

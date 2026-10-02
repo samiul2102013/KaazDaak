@@ -34,13 +34,13 @@ SECTIONS = {
         2,
         "KaazBir Profiles",
         "KaazBir (worker) profiles plus kasbir discovery and search.",
-        ("users.KaazbirProfile",),
+        ("kaazbir.KaazbirProfile",),
     ),
     "kyc-verification": ApiSection(
         3,
         "KYC Verification",
         "Know-Your-Customer verification submission for kaazbirs.",
-        ("users.KYCVerification", "users.KYCSelfie"),
+        ("kaazbir.KYCVerification", "kaazbir.KYCSelfie"),
     ),
     "services-subservices": ApiSection(
         4,
@@ -90,7 +90,7 @@ SECTIONS = {
         "Hirer Profiles & Media",
         "Hirer (employer) profile, media, profile picture and notification "
         "settings.",
-        ("users.HirerProfile", "users.HirerMedia"),
+        ("hirer.HirerProfile", "hirer.HirerMedia"),
     ),
     "system": ApiSection(
         12,

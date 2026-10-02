@@ -4,7 +4,8 @@ from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.catalog.models import KasbirService, Service, Subservice
-from apps.users.models import KaazbirProfile, User
+from apps.kaazbir.models import KaazbirProfile
+from apps.users.models import User
 
 
 @pytest.fixture

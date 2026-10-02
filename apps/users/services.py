@@ -9,7 +9,11 @@ from django.core.mail import send_mail
 from django.db import transaction
 from django.utils import timezone
 
-from .models import OTP, HirerProfile, KaazbirProfile, User
+from apps.hirer.models import HirerProfile
+from apps.kaazbir.models import KaazbirProfile
+from apps.kaazbir.services import KaazbirProfileService
+
+from .models import OTP, User
 from .validators import canonical_bd_local, normalize_bd_phone
 
 logger = logging.getLogger(__name__)
@@ -316,62 +320,3 @@ class AuthService:
         else:
             HirerProfile.objects.get_or_create(user=user)
         return user
-
-
-class KaazbirProfileService:
-    @staticmethod
-    def get_or_create_profile(user):
-        profile, _ = KaazbirProfile.objects.get_or_create(
-            user=user,
-            defaults={
-                "business_name": "",
-                "service_category": "",
-                "address": "",
-            },
-        )
-        return profile
-
-    @staticmethod
-    def update_profile(user, validated_data):
-        profile = KaazbirProfileService.get_or_create_profile(user)
-        for field, value in validated_data.items():
-            setattr(profile, field, value)
-        profile.is_profile_complete = KaazbirProfileService.is_complete(profile)
-        profile.save()
-        return profile
-
-    @staticmethod
-    def is_complete(profile):
-        return bool(
-            profile.business_name
-            and profile.division
-            and profile.district
-            and profile.upazila
-            and profile.service_start_time
-            and profile.service_end_time
-        )
-
-
-class HirerProfileService:
-    @staticmethod
-    def get_or_create_profile(user):
-        profile, _ = HirerProfile.objects.get_or_create(user=user)
-        return profile
-
-    @staticmethod
-    def update_profile(user, validated_data):
-        profile = HirerProfileService.get_or_create_profile(user)
-        for field, value in validated_data.items():
-            setattr(profile, field, value)
-        profile.is_profile_complete = HirerProfileService.is_complete(profile)
-        profile.save()
-        return profile
-
-    @staticmethod
-    def is_complete(profile):
-        return bool(
-            profile.address
-            and profile.division
-            and profile.district
-            and profile.upazila
-        )

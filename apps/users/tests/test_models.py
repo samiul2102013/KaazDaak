@@ -1,7 +1,8 @@
 import pytest
 from django.db import IntegrityError
 
-from apps.users.models import OTP, KaazbirProfile, User
+from apps.kaazbir.models import KaazbirProfile
+from apps.users.models import OTP, User
 
 
 @pytest.mark.django_db

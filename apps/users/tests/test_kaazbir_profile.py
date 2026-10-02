@@ -3,7 +3,8 @@ from rest_framework import status
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from apps.users.models import KaazbirProfile, User
+from apps.kaazbir.models import KaazbirProfile
+from apps.users.models import User
 
 
 @pytest.fixture
@@ -167,12 +168,92 @@ class TestKaazbirProfileUpdate:
 class TestKaazbirProfileService:
     def test_is_complete_false_when_fields_missing(self, kaazbir_user):
         profile = kaazbir_user.kaazbir_profile
-        from apps.users.services import KaazbirProfileService
+        from apps.kaazbir.services import KaazbirProfileService
 
         assert KaazbirProfileService.is_complete(profile) is False
 
     def test_get_or_create_returns_existing_profile(self, kaazbir_user):
-        from apps.users.services import KaazbirProfileService
+        from apps.kaazbir.services import KaazbirProfileService
 
         profile = KaazbirProfileService.get_or_create_profile(kaazbir_user)
         assert profile == kaazbir_user.kaazbir_profile
+
+
+@pytest.mark.django_db
+class TestKaazbirProfileCompletion:
+    URL = "/api/v1/kaazbir/profile-completion/"
+
+    def test_unauthenticated_returns_401(self, api_client):
+        response = api_client.get(self.URL)
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_hirer_forbidden(self, hirer_client):
+        response = hirer_client.get(self.URL)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_fresh_profile_reports_only_basic_info(self, kaazbir_client):
+        response = kaazbir_client.get(self.URL)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["success"] is True
+        assert response.data["data"] == {
+            "basic_info": True,
+            "available_service_time": False,
+            "service_location": False,
+            "kyc": False,
+        }
+
+    def test_sections_flip_as_fields_fill(
+        self, kaazbir_client, kaazbir_user, api_client
+    ):
+        kaazbir_client.post(
+            "/api/v1/kaazbir/profile/",
+            {
+                "business_name": "Tech Fix BD",
+                "service_start_time": "09:00:00",
+                "service_end_time": "18:00:00",
+                "division": "Dhaka",
+                "district": "Dhaka",
+                "upazila": "Savar",
+                "location": "Savar Bazar",
+            },
+            format="json",
+        )
+        response = kaazbir_client.get(self.URL)
+        assert response.data["data"] == {
+            "basic_info": True,
+            "available_service_time": True,
+            "service_location": True,
+            "kyc": False,
+        }
+
+    def test_kyc_true_after_submit(self, kaazbir_client, kaazbir_user):
+        from io import BytesIO
+
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from PIL import Image
+
+        def make_image(name):
+            buffer = BytesIO()
+            Image.new("RGB", (10, 10), color="red").save(buffer, format="PNG")
+            return SimpleUploadedFile(name, buffer.getvalue(), content_type="image/png")
+
+        kaazbir_client.post(
+            "/api/v1/auth/kyc/submit/",
+            {
+                "document_type": "national_id",
+                "front_image": make_image("front.png"),
+                "back_image": make_image("back.png"),
+                "full_name": "Profile KaazBir",
+                "father_name": "Father",
+                "date_of_birth": "1990-01-01",
+                "address": "Dhanmondi",
+                "post": "1205",
+                "thana": "Dhanmondi",
+                "district": "Dhaka",
+                "division": "Dhaka",
+                "consent": True,
+            },
+            format="multipart",
+        )
+        response = kaazbir_client.get(self.URL)
+        assert response.data["data"]["kyc"] is True

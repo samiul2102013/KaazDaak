@@ -3,7 +3,6 @@ import logging
 from django.conf import settings
 from drf_spectacular.utils import inline_serializer
 from rest_framework import serializers, status
-from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -14,54 +13,23 @@ from rest_framework_simplejwt.views import TokenRefreshView as SimpleJWTTokenRef
 from apps.common.api_spec import SECTION_TAGS
 from apps.common.responses import success_response
 from apps.common.throttling import EnvScopedRateThrottle
+from apps.kaazbir.services import KaazbirProfileService
 
-from .models import HirerMedia, HirerProfile, User
-from .permissions import IsHirer, IsKaazbir
+from .models import User
 from .serializers import (
-    ChangePasswordSerializer,
     ForgotPasswordSerializer,
-    HirerBasicInfoSerializer,
-    HirerMediaUploadSerializer,
-    HirerProfilePictureSerializer,
     HirerRegisterSerializer,
-    KaazbirProfileDetailSerializer,
-    KaazbirProfileUpdateSerializer,
     KaazbirRegisterSerializer,
-    KYCSubmitSerializer,
     LoginSerializer,
-    NiyokdataProfileDetailSerializer,
-    NiyokdataProfileUpdateSerializer,
-    NotificationSettingsSerializer,
     ResendOTPSerializer,
     ResetPasswordSerializer,
     SwitchRoleSerializer,
     UserSerializer,
     VerifyEmailSerializer,
 )
-from .services import AuthService, HirerProfileService, KaazbirProfileService
+from .services import AuthService
 
 logger = logging.getLogger(__name__)
-
-_hirer_media_item = inline_serializer(
-    "HirerMediaItemResponse",
-    fields={
-        "name": serializers.CharField(),
-        "picture": serializers.CharField(allow_null=True),
-    },
-)
-
-_hirer_media_response = inline_serializer(
-    "HirerMediaResponse",
-    fields={
-        "certificate": _hirer_media_item,
-        "license": _hirer_media_item,
-    },
-)
-
-
-def get_or_create_hirer_profile(user):
-    profile, _ = HirerProfile.objects.get_or_create(user=user)
-    return profile
 
 
 class HirerRegisterView(APIView):
@@ -463,273 +431,6 @@ class SwitchRoleView(APIView):
                 "user": UserSerializer(user).data,
             },
             message="Role switched successfully.",
-        )
-
-
-class KYCSubmitView(APIView):
-    permission_classes = [IsAuthenticated, IsKaazbir]
-    tags = [SECTION_TAGS["kyc-verification"]]
-    request_serializer = KYCSubmitSerializer
-    response_serializer = {
-        status.HTTP_201_CREATED: inline_serializer(
-            "KYCSubmitResponse",
-            fields={
-                "id": serializers.UUIDField(),
-                "document_type": serializers.CharField(),
-                "status": serializers.CharField(),
-            },
-        )
-    }
-
-    def post(self, request):
-        serializer = KYCSubmitSerializer(
-            data=request.data,
-            context={"request": request},
-        )
-        serializer.is_valid(raise_exception=True)
-        kyc = serializer.save()
-        return success_response(
-            data={
-                "id": str(kyc.id),
-                "document_type": kyc.document_type,
-                "status": kyc.status,
-            },
-            message="KYC submitted successfully.",
-            status=status.HTTP_201_CREATED,
-        )
-
-
-class KaazbirProfileView(APIView):
-    permission_classes = [IsAuthenticated, IsKaazbir]
-    tags = [SECTION_TAGS["kaazbir-profiles"]]
-    response_serializer_get = KaazbirProfileDetailSerializer
-    request_serializer_post = KaazbirProfileUpdateSerializer
-    response_serializer_post = inline_serializer(
-        "KaazbirProfileUpdateResponse",
-        fields={
-            "id": serializers.UUIDField(),
-            "is_profile_complete": serializers.BooleanField(),
-        },
-    )
-
-    def get(self, request):
-        profile = KaazbirProfileService.get_or_create_profile(request.user)
-        serializer = KaazbirProfileDetailSerializer(
-            profile, context={"request": request}
-        )
-        return success_response(
-            data=serializer.data,
-            message="Profile fetched successfully.",
-        )
-
-    def post(self, request):
-        serializer = KaazbirProfileUpdateSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        profile = KaazbirProfileService.update_profile(
-            request.user, serializer.validated_data
-        )
-        return success_response(
-            data={
-                "id": str(profile.id),
-                "is_profile_complete": profile.is_profile_complete,
-            },
-            message="Profile updated successfully.",
-        )
-
-
-class HirerBasicInfoView(APIView):
-    permission_classes = [IsAuthenticated, IsHirer]
-    tags = [SECTION_TAGS["hirer-profiles"]]
-    request_serializer = HirerBasicInfoSerializer
-    response_serializer = inline_serializer(
-        "HirerBasicInfoResponse",
-        fields={
-            "full_name": serializers.CharField(),
-            "email": serializers.EmailField(),
-            "phone_number": serializers.CharField(allow_null=True),
-        },
-    )
-
-    def post(self, request):
-        serializer = HirerBasicInfoSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = request.user
-        user.full_name = serializer.validated_data["full_name"]
-        user.email = serializer.validated_data["email"]
-        if serializer.validated_data.get("phone_number"):
-            from .validators import normalize_bd_phone
-
-            user.phone_number = normalize_bd_phone(
-                serializer.validated_data["phone_number"]
-            )
-        user.save(update_fields=["full_name", "email", "phone_number"])
-        return success_response(
-            data={
-                "full_name": user.full_name,
-                "email": user.email,
-                "phone_number": user.phone_number,
-            },
-            message="Basic info updated successfully.",
-        )
-
-
-class HirerMediaView(APIView):
-    permission_classes = [IsAuthenticated, IsHirer]
-    parser_classes = [MultiPartParser, FormParser]
-    tags = [SECTION_TAGS["hirer-profiles"]]
-    request_serializer = HirerMediaUploadSerializer
-    response_serializer = _hirer_media_response
-
-    def post(self, request):
-        serializer = HirerMediaUploadSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        user = request.user
-        data = {"certificate": None, "license": None}
-
-        if serializer.validated_data.get("certificate_name"):
-            cert = HirerMedia.objects.create(
-                user=user,
-                media_type=HirerMedia.MediaType.CERTIFICATE,
-                name=serializer.validated_data["certificate_name"],
-                picture=serializer.validated_data.get("certificate_picture"),
-            )
-            data["certificate"] = {
-                "name": cert.name,
-                "picture": (
-                    request.build_absolute_uri(cert.picture.url)
-                    if cert.picture
-                    else None
-                ),
-            }
-
-        if serializer.validated_data.get("license_name"):
-            lic = HirerMedia.objects.create(
-                user=user,
-                media_type=HirerMedia.MediaType.LICENSE,
-                name=serializer.validated_data["license_name"],
-                picture=serializer.validated_data.get("license_picture"),
-            )
-            data["license"] = {
-                "name": lic.name,
-                "picture": (
-                    request.build_absolute_uri(lic.picture.url) if lic.picture else None
-                ),
-            }
-
-        return success_response(
-            data=data,
-            message="Media uploaded successfully.",
-        )
-
-
-class HirerProfilePictureView(APIView):
-    permission_classes = [IsAuthenticated, IsHirer]
-    parser_classes = [MultiPartParser, FormParser]
-    tags = [SECTION_TAGS["hirer-profiles"]]
-    request_serializer = HirerProfilePictureSerializer
-    response_serializer = inline_serializer(
-        "HirerProfilePictureResponse",
-        fields={"picture": serializers.CharField(allow_null=True)},
-    )
-
-    def post(self, request):
-        serializer = HirerProfilePictureSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        profile = get_or_create_hirer_profile(request.user)
-        profile.profile_picture = serializer.validated_data["picture"]
-        profile.save(update_fields=["profile_picture"])
-        return success_response(
-            data={
-                "picture": (
-                    request.build_absolute_uri(profile.profile_picture.url)
-                    if profile.profile_picture
-                    else None
-                ),
-            },
-            message="Profile picture updated successfully.",
-        )
-
-
-class HirerNotificationSettingsView(APIView):
-    permission_classes = [IsAuthenticated, IsHirer]
-    tags = [SECTION_TAGS["hirer-profiles"]]
-    request_serializer = NotificationSettingsSerializer
-    response_serializer = NotificationSettingsSerializer
-
-    def patch(self, request):
-        profile = get_or_create_hirer_profile(request.user)
-        serializer = NotificationSettingsSerializer(
-            profile, data=request.data, partial=True
-        )
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return success_response(
-            data=serializer.data,
-            message="Notification settings updated successfully.",
-        )
-
-
-class HirerChangePasswordView(APIView):
-    permission_classes = [IsAuthenticated, IsHirer]
-    tags = [SECTION_TAGS["users-auth"]]
-    request_serializer = ChangePasswordSerializer
-    response_serializer = inline_serializer(
-        "PasswordChangeResponse", fields={"message": serializers.CharField()}
-    )
-
-    def post(self, request):
-        serializer = ChangePasswordSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = request.user
-
-        if not user.check_password(serializer.validated_data["old_password"]):
-            return success_response(
-                data=None,
-                message="Old password is incorrect.",
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        user.set_password(serializer.validated_data["new_password"])
-        user.save(update_fields=["password"])
-        return success_response(message="Password changed successfully.")
-
-
-class NiyokdataProfileView(APIView):
-    permission_classes = [IsAuthenticated, IsHirer]
-    tags = [SECTION_TAGS["hirer-profiles"]]
-    response_serializer_get = NiyokdataProfileDetailSerializer
-    request_serializer_post = NiyokdataProfileUpdateSerializer
-    response_serializer_post = inline_serializer(
-        "NiyokdataProfileUpdateResponse",
-        fields={
-            "id": serializers.UUIDField(),
-            "is_profile_complete": serializers.BooleanField(),
-        },
-    )
-
-    def get(self, request):
-        profile = HirerProfileService.get_or_create_profile(request.user)
-        serializer = NiyokdataProfileDetailSerializer(
-            profile, context={"request": request}
-        )
-        return success_response(
-            data=serializer.data,
-            message="Profile fetched successfully.",
-        )
-
-    def post(self, request):
-        serializer = NiyokdataProfileUpdateSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        profile = HirerProfileService.update_profile(
-            request.user, serializer.validated_data
-        )
-        return success_response(
-            data={
-                "id": str(profile.id),
-                "is_profile_complete": profile.is_profile_complete,
-            },
-            message="Profile updated successfully.",
         )
 
 

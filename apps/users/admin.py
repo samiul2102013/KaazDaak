@@ -1,15 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
-from .models import (
-    OTP,
-    HirerMedia,
-    HirerProfile,
-    KaazbirProfile,
-    KYCSelfie,
-    KYCVerification,
-    User,
-)
+from .models import OTP, User
 
 
 @admin.register(User)
@@ -74,50 +66,6 @@ class UserAdmin(BaseUserAdmin):
             },
         ),
     )
-
-
-@admin.register(KaazbirProfile)
-class KaazbirProfileAdmin(admin.ModelAdmin):
-    list_display = (
-        "user",
-        "business_name",
-        "service_category",
-        "kyc_verified",
-        "is_profile_complete",
-    )
-    search_fields = ("business_name", "service_category", "user__username")
-
-
-class KYCSelfieInline(admin.TabularInline):
-    model = KYCSelfie
-    extra = 0
-
-
-@admin.register(KYCVerification)
-class KYCVerificationAdmin(admin.ModelAdmin):
-    list_display = ("user", "document_type", "status", "consent", "created_at")
-    list_filter = ("document_type", "status")
-    search_fields = ("user__username", "user__email")
-    inlines = [KYCSelfieInline]
-
-
-@admin.register(HirerProfile)
-class HirerProfileAdmin(admin.ModelAdmin):
-    list_display = (
-        "user",
-        "organization_name",
-        "is_profile_complete",
-        "push_notifications",
-        "created_at",
-    )
-    search_fields = ("user__username", "organization_name")
-
-
-@admin.register(HirerMedia)
-class HirerMediaAdmin(admin.ModelAdmin):
-    list_display = ("user", "media_type", "name", "created_at")
-    list_filter = ("media_type",)
-    search_fields = ("user__username", "name")
 
 
 @admin.register(OTP)

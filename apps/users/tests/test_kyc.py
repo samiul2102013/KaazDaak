@@ -7,7 +7,8 @@ from rest_framework import status
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from apps.users.models import KaazbirProfile, KYCSelfie, KYCVerification, User
+from apps.kaazbir.models import KaazbirProfile, KYCSelfie, KYCVerification
+from apps.users.models import User
 
 
 def _make_image(name):

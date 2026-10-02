@@ -4,7 +4,7 @@ from rest_framework import serializers
 from apps.catalog.models import Service, Subservice
 from apps.users.models import User
 
-from .models import Earning, Mission, MissionApplication, MissionPicture, Review
+from .models import Earning, Mission, MissionApplication, MissionPicture
 
 
 class MissionPictureSerializer(serializers.ModelSerializer):
@@ -142,24 +142,6 @@ class MissionApplicationSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "mission", "kaazbir", "created_at"]
 
 
-class MissionBidSerializer(serializers.Serializer):
-    action = serializers.ChoiceField(choices=["bid", "reject"])
-    budget = serializers.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        required=False,
-        allow_null=True,
-        help_text="Required when 'action' is 'bid'.",
-    )
-
-    def validate(self, attrs):
-        if attrs["action"] == "bid" and not attrs.get("budget"):
-            raise serializers.ValidationError(
-                {"budget": "Budget is required when bidding."}
-            )
-        return attrs
-
-
 class MissionConfirmSerializer(serializers.Serializer):
     kaazbir_id = serializers.UUIDField()
 
@@ -215,110 +197,6 @@ class HirerActivitySerializer(serializers.ModelSerializer):
             "rejected": "cancelled",
         }
         return status_map.get(obj.status, obj.status)
-
-
-class KaazbirActivitySerializer(serializers.ModelSerializer):
-    mission_id = serializers.UUIDField(source="id")
-    category = serializers.SerializerMethodField()
-    sub_category = serializers.SerializerMethodField()
-    picture = serializers.SerializerMethodField()
-    order_number = serializers.SerializerMethodField()
-    amount = serializers.DecimalField(
-        source="final_price", max_digits=10, decimal_places=2
-    )
-
-    class Meta:
-        model = Mission
-        fields = [
-            "mission_id",
-            "category",
-            "sub_category",
-            "picture",
-            "title",
-            "order_number",
-            "amount",
-            "pickup_location",
-            "delivery_location",
-            "status",
-            "created_at",
-        ]
-
-    def get_category(self, obj):
-        return obj.service.name if obj.service else None
-
-    def get_sub_category(self, obj):
-        return obj.subservice.name if obj.subservice else None
-
-    def get_picture(self, obj):
-        picture = obj.pictures.first()
-        if picture:
-            return self.context["request"].build_absolute_uri(picture.image.url)
-        return None
-
-    def get_order_number(self, obj):
-        return f"ORD-{str(obj.id).upper()[:8]}"
-
-
-class KaazbirActivityDetailSerializer(serializers.ModelSerializer):
-    mission_id = serializers.UUIDField(source="id")
-    order_number = serializers.SerializerMethodField()
-    earning = serializers.DecimalField(
-        source="final_price", max_digits=10, decimal_places=2
-    )
-    customer = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Mission
-        fields = [
-            "mission_id",
-            "title",
-            "created_at",
-            "order_number",
-            "earning",
-            "pickup_location",
-            "delivery_location",
-            "customer",
-        ]
-
-    def get_order_number(self, obj):
-        return f"ORD-{str(obj.id).upper()[:8]}"
-
-    def get_customer(self, obj):
-        return {
-            "name": obj.hirer.full_name,
-            "phone": obj.hirer.phone_number,
-        }
-
-
-class ReviewSerializer(serializers.ModelSerializer):
-    hirer_name = serializers.SerializerMethodField()
-    hirer_profile_pic = serializers.SerializerMethodField()
-    review_time = serializers.DateTimeField(source="created_at")
-
-    class Meta:
-        model = Review
-        fields = [
-            "id",
-            "hirer_name",
-            "hirer_profile_pic",
-            "review_time",
-            "review_text",
-            "rating",
-        ]
-
-    def get_hirer_name(self, obj):
-        return obj.hirer.full_name
-
-    def get_hirer_profile_pic(self, obj):
-        try:
-            profile = obj.hirer.hirer_profile
-            if profile.profile_picture:
-                return self.context["request"].build_absolute_uri(
-                    profile.profile_picture.url
-                )
-        except AttributeError:
-            pass
-        return None
 
 
 class EarningSerializer(serializers.ModelSerializer):

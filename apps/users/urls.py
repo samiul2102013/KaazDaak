@@ -5,7 +5,6 @@ from .views import (
     ForgotPasswordView,
     HirerRegisterView,
     KaazbirRegisterView,
-    KYCSubmitView,
     LoginView,
     LogoutView,
     ResendOTPView,
@@ -31,5 +30,4 @@ urlpatterns = [
     path("logout/", LogoutView.as_view(), name="auth-logout"),
     path("me/", CurrentUserView.as_view(), name="current-user"),
     path("switch-role/", SwitchRoleView.as_view(), name="switch-role"),
-    path("kyc/submit/", KYCSubmitView.as_view(), name="kyc-submit"),
 ]

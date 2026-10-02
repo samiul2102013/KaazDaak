@@ -15,7 +15,7 @@ from rest_framework.response import Response
 
 from apps.catalog.views import CampaignListView
 from apps.common.api_spec import SECTION_TAGS
-from apps.users.views import KaazbirProfileView
+from apps.kaazbir.views import KYCSubmitView
 
 
 @extend_schema(
@@ -40,14 +40,11 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/health/", health_check, name="health_check"),
     path("api/v1/auth/", include("apps.users.urls")),
+    path("api/v1/auth/kyc/submit/", KYCSubmitView.as_view(), name="kyc-submit"),
     path("api/v1/", include("apps.catalog.urls")),
     path("api/v1/", include("apps.missions.urls")),
-    path("api/v1/hirer/", include("apps.users.hirer_urls")),
-    path(
-        "api/v1/kaazbir/profile/",
-        KaazbirProfileView.as_view(),
-        name="kaazbir-profile",
-    ),
+    path("api/v1/", include("apps.kaazbir.urls")),
+    path("api/v1/hirer/", include("apps.hirer.urls")),
     path("api/v1/offers/", CampaignListView.as_view(), name="offers-list"),
     path(
         "api/schema/",

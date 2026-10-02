@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     "apps.core",
     "apps.common",
     "apps.users",
+    "apps.kaazbir",
+    "apps.hirer",
     "apps.catalog",
     "apps.missions",
 ]

@@ -2,7 +2,9 @@ import pytest
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from apps.users.models import HirerProfile, KaazbirProfile, User
+from apps.hirer.models import HirerProfile
+from apps.kaazbir.models import KaazbirProfile
+from apps.users.models import User
 
 
 @pytest.fixture
