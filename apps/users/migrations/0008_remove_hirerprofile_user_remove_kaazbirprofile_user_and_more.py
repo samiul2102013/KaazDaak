@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ("users", "0007_alter_user_role_alter_user_roles_hirermedia_and_more"),
         ("kaazbir", "0001_initial"),
-        ("hirer", "0001_initial"),
+        ("hirer", "0001_create_models"),
     ]
 
     operations = [
