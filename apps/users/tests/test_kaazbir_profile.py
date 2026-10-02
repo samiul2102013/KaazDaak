@@ -165,6 +165,45 @@ class TestKaazbirProfileUpdate:
 
 
 @pytest.mark.django_db
+class TestKaazbirProfileCoordinates:
+    URL = "/api/v1/kaazbir/profile/"
+
+    def test_update_with_coordinates_success(self, kaazbir_client, kaazbir_user):
+        payload = dict(TestKaazbirProfileUpdate.VALID_PAYLOAD)
+        payload.update({"latitude": "24.747100", "longitude": "90.420300"})
+        response = kaazbir_client.post(self.URL, payload, format="json")
+        assert response.status_code == status.HTTP_200_OK
+        kaazbir_user.kaazbir_profile.refresh_from_db()
+        assert str(kaazbir_user.kaazbir_profile.latitude) == "24.747100"
+        assert str(kaazbir_user.kaazbir_profile.longitude) == "90.420300"
+
+    def test_get_echoes_coordinates(self, kaazbir_client, kaazbir_user):
+        payload = dict(TestKaazbirProfileUpdate.VALID_PAYLOAD)
+        payload.update({"latitude": "24.747100", "longitude": "90.420300"})
+        kaazbir_client.post(self.URL, payload, format="json")
+        data = kaazbir_client.get(self.URL).data["data"]
+        assert data["latitude"] == "24.747100"
+        assert data["longitude"] == "90.420300"
+
+    def test_update_without_coordinates_still_works(self, kaazbir_client, kaazbir_user):
+        response = kaazbir_client.post(
+            self.URL, TestKaazbirProfileUpdate.VALID_PAYLOAD, format="json"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        kaazbir_user.kaazbir_profile.refresh_from_db()
+        assert kaazbir_user.kaazbir_profile.latitude is None
+        assert kaazbir_user.kaazbir_profile.longitude is None
+
+    def test_update_rejects_out_of_range_coordinates(self, kaazbir_client):
+        payload = dict(TestKaazbirProfileUpdate.VALID_PAYLOAD)
+        payload.update({"latitude": "91.000000", "longitude": "190.000000"})
+        response = kaazbir_client.post(self.URL, payload, format="json")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "latitude" in response.data["error"]
+        assert "longitude" in response.data["error"]
+
+
+@pytest.mark.django_db
 class TestKaazbirProfileService:
     def test_is_complete_false_when_fields_missing(self, kaazbir_user):
         profile = kaazbir_user.kaazbir_profile

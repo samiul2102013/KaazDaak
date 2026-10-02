@@ -22,6 +22,8 @@ class KaazbirProfileSerializer(serializers.ModelSerializer):
             "district",
             "upazila",
             "location",
+            "latitude",
+            "longitude",
             "is_profile_complete",
         ]
 
@@ -43,6 +45,8 @@ class KaazbirProfileDetailSerializer(serializers.ModelSerializer):
             "district",
             "upazila",
             "location",
+            "latitude",
+            "longitude",
             "is_profile_complete",
             "services",
         ]
@@ -68,6 +72,8 @@ class KaazbirProfileUpdateSerializer(serializers.ModelSerializer):
             "district",
             "upazila",
             "location",
+            "latitude",
+            "longitude",
         ]
 
 
