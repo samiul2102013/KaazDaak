@@ -64,6 +64,8 @@ class KYCVerification(TimestampedModel):
         NATIONAL_ID = "national_id", "National ID"
         PASSPORT = "passport", "Passport"
         DRIVING_LICENSE = "driving_license", "Driving License"
+        STUDENT_ID_CARD = "student_id_card", "Student ID Card"
+        BIRTH_CERTIFICATE = "birth_certificate", "Birth Certificate"
 
     class Status(models.TextChoices):
         PENDING = "pending", "Pending"
@@ -77,8 +79,8 @@ class KYCVerification(TimestampedModel):
         related_name="kyc_verification",
     )
     document_type = models.CharField(max_length=30, choices=DocumentType.choices)
-    front_image = models.ImageField(upload_to=kyc_file_path)
-    back_image = models.ImageField(upload_to=kyc_file_path)
+    front_image = models.FileField(upload_to=kyc_file_path)
+    back_image = models.FileField(upload_to=kyc_file_path)
     extracted_data = models.JSONField(default=dict, blank=True)
     consent = models.BooleanField(default=False)
     status = models.CharField(

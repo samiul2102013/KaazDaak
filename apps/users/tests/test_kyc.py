@@ -17,6 +17,14 @@ def _make_image(name):
     return SimpleUploadedFile(name, buffer.getvalue(), content_type="image/png")
 
 
+def _make_pdf(name):
+    content = (
+        b"%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\n"
+        b"trailer\n<< /Root 1 0 R >>\n%%EOF"
+    )
+    return SimpleUploadedFile(name, content, content_type="application/pdf")
+
+
 @pytest.fixture
 def api_client():
     return APIClient()
@@ -157,3 +165,74 @@ class TestKYCSubmit:
     def test_unauthenticated_returns_401(self, api_client):
         response = api_client.post(self.URL, _kyc_payload(), format="multipart")
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
+class TestKYCDocumentTypes:
+    URL = "/api/v1/auth/kyc/submit/"
+
+    def test_submit_student_id_card_with_pdf(self, kaazbir_client, kaazbir_user):
+        response = kaazbir_client.post(
+            self.URL,
+            _kyc_payload(
+                document_type="student_id_card",
+                front_image=_make_pdf("front.pdf"),
+                back_image=_make_pdf("back.pdf"),
+            ),
+            format="multipart",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data["data"]["document_type"] == "student_id_card"
+        kyc = KYCVerification.objects.get(user=kaazbir_user)
+        assert kyc.document_type == "student_id_card"
+
+    def test_submit_student_id_card_with_images(self, kaazbir_client, kaazbir_user):
+        response = kaazbir_client.post(
+            self.URL,
+            _kyc_payload(document_type="student_id_card"),
+            format="multipart",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data["data"]["document_type"] == "student_id_card"
+
+    def test_submit_birth_certificate_with_pdf(self, kaazbir_client, kaazbir_user):
+        response = kaazbir_client.post(
+            self.URL,
+            _kyc_payload(
+                document_type="birth_certificate",
+                front_image=_make_pdf("front.pdf"),
+                back_image=_make_pdf("back.pdf"),
+            ),
+            format="multipart",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data["data"]["document_type"] == "birth_certificate"
+
+    def test_submit_birth_certificate_with_images(self, kaazbir_client, kaazbir_user):
+        response = kaazbir_client.post(
+            self.URL,
+            _kyc_payload(document_type="birth_certificate"),
+            format="multipart",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+
+    def test_submit_rejects_non_document_file(self, kaazbir_client):
+        bad_file = SimpleUploadedFile(
+            "notes.txt", b"just some text", content_type="text/plain"
+        )
+        response = kaazbir_client.post(
+            self.URL,
+            _kyc_payload(document_type="birth_certificate", front_image=bad_file),
+            format="multipart",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "front_image" in response.data["error"]
+
+    def test_submit_rejects_unknown_document_type(self, kaazbir_client):
+        response = kaazbir_client.post(
+            self.URL,
+            _kyc_payload(document_type="library_card"),
+            format="multipart",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "document_type" in response.data["error"]

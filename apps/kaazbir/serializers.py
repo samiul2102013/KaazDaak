@@ -79,10 +79,16 @@ class KaazbirProfileUpdateSerializer(serializers.ModelSerializer):
 
 class KYCSubmitSerializer(serializers.Serializer):
     document_type = serializers.ChoiceField(
-        choices=["national_id", "passport", "driving_license"]
+        choices=[
+            "national_id",
+            "passport",
+            "driving_license",
+            "student_id_card",
+            "birth_certificate",
+        ]
     )
-    front_image = serializers.ImageField()
-    back_image = serializers.ImageField()
+    front_image = serializers.FileField()
+    back_image = serializers.FileField()
     selfies = serializers.ListField(
         child=serializers.ImageField(), required=False, allow_empty=True
     )
@@ -102,11 +108,11 @@ class KYCSubmitSerializer(serializers.Serializer):
         return value
 
     def validate_front_image(self, value):
-        validate_image_size(value)
+        validate_document_file(value)
         return value
 
     def validate_back_image(self, value):
-        validate_image_size(value)
+        validate_document_file(value)
         return value
 
     def validate_selfies(self, value):
@@ -150,6 +156,49 @@ def validate_image_size(image):
     if image.size > max_size_mb * 1024 * 1024:
         raise serializers.ValidationError(
             f"Image size must not exceed {max_size_mb}MB."
+        )
+
+
+def _is_pdf(file):
+    header = file.read(8)
+    file.seek(0)
+    return header.startswith(b"%PDF")
+
+
+def _is_image(file):
+    from PIL import Image
+
+    try:
+        file.seek(0)
+        with Image.open(file) as img:
+            img.verify()
+        file.seek(0)
+        return True
+    except Exception:
+        try:
+            file.seek(0)
+        except Exception:
+            pass
+        return False
+
+
+def validate_document_file(file):
+    """Accept document uploads as a valid image or PDF.
+
+    Images are capped at 5MB, PDFs at 10MB (scanned multi-page
+    documents run larger). Anything else is rejected.
+    """
+    if _is_pdf(file):
+        max_size_mb = 10
+        kind = "PDF"
+    elif _is_image(file):
+        max_size_mb = 5
+        kind = "Image"
+    else:
+        raise serializers.ValidationError("File must be a valid image or PDF.")
+    if file.size > max_size_mb * 1024 * 1024:
+        raise serializers.ValidationError(
+            f"{kind} size must not exceed {max_size_mb}MB."
         )
 
 
