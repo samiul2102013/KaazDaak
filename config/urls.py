@@ -39,6 +39,8 @@ def health_check(request):
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/health/", health_check, name="health_check"),
+    # Alias for clients that assume versioned paths (same view, same payload).
+    path("api/v1/health/", health_check, name="health_check_v1"),
     path("api/v1/auth/", include("apps.users.urls")),
     path("api/v1/auth/kyc/submit/", KYCSubmitView.as_view(), name="kyc-submit"),
     path("api/v1/", include("apps.catalog.urls")),
